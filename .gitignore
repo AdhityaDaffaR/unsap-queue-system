@@ -1,0 +1,50 @@
+# =========================================================================
+# 📦 FOLDER DEPENDENSI RAKSASA (Root, Client, Server)
+# =========================================================================
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# =========================================================================
+# 🚀 HASIL KOMPILASI & BUILD PRODUKSI (Vite & SSR)
+# =========================================================================
+dist/
+client/dist/
+dist-ssr/
+*.local
+
+# =========================================================================
+# 🔒 FILE KUNCI RAHASIA & API TOKEN SERVER (Wajib Dijaga Amat Ketat)
+# =========================================================================
+.env
+.env.local
+.env.*.local
+
+# =========================================================================
+# 🛠️ CACHE EDITOR & DIREKTORI IDE (VS Code / WebStorm / Visual Studio)
+# =========================================================================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================================================================
+# 📋 SYSTEM LOGS & DEBUG FILES
+# =========================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================================================================
+# 🗑️ FILE SAMPAH TEMPORER SISTEM OPERASI (Windows / macOS)
+# =========================================================================
+.DS_Store
+Thumbs.db
