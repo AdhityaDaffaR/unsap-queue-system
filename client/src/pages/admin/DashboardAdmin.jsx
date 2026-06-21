@@ -53,16 +53,17 @@ export default function DashboardAdmin() {
 
   return (
     <div className="min-h-screen bg-bg-main text-text-main flex flex-col">
+      {/* FIX SINKRONISASI PEMETAAN PROFIL NAVBAR */}
       <Navbar
         navigate={() => {}}
         isLoggedIn={true}
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         userProfile={{
-          nama: adminProfile.username,
-          nim: adminProfile.role,
+          nama: adminProfile.nama,     // <-- DIUBAH: Menampilkan Nama Riil Staf ("Admin UNSAP")
+          nim: `@${adminProfile.role}`, // <-- DIUBAH: Menampilkan Username Berawalan Simbol @ ("@admin_fleksibel")
         }}
-        handleLogout={triggerLogoutConfirm} // Pemicu diarahkan ke modal konfirmasi
+        handleLogout={triggerLogoutConfirm} 
         title="Staff System"
       />
 
@@ -251,7 +252,6 @@ export default function DashboardAdmin() {
         </div>
       </Modal>
 
-      {/* FIX REDAKSI LOGOUT KENDALI PENUH: Akun admin tidak terikat permanen pada satu meja tugas */}
       <Modal isOpen={showLogoutModal} onClose={() => setShowLogoutModal(false)} title="Konfirmasi Keluar Sistem" showCloseButton={true}>
         <div className="space-y-4 py-1 text-center">
           <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">

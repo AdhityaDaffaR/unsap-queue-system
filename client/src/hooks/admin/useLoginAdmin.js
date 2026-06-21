@@ -1,21 +1,21 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function useLoginAdmin() {
   const navigate = useNavigate();
-  
+
   // STATE INPUT FORM ADMIN
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   // STATE: Pengendali pop-up kustom pilihan penugasan meja loket
   const [showSelectLoketModal, setShowSelectLoketModal] = useState(false);
 
   // Cek status apakah admin sebenarnya sudah masuk/terotentikasi sebelumnya
-  const isAdminLoggedIn = sessionStorage.getItem('isAdminLoggedIn') === 'true';
+  const isAdminLoggedIn = sessionStorage.getItem("isAdminLoggedIn") === "true";
 
   // DATA MASTER LOKET: Opsi plotting penugasan kerja staf
   const listLoketTugas = [
@@ -25,53 +25,69 @@ export default function useLoginAdmin() {
     { id: 4, kode: "3", nama: "Loket 3 - Keuangan/BAU", prefix: "B-" },
   ];
 
-  // LOGIKA SUBMIT LOGIN ADMIN
-  const handleAdminLogin = (e) => {
+  // LOGIKA SUBMIT LOGIN ADMIN (INTEGRASI BACKEND RIIL)
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!username || !password) {
-      setError('Username dan Kata Sandi wajib diisi!');
+      setError("Username dan Kata Sandi wajib diisi!");
       return;
     }
 
     setIsLoading(true);
 
-    // Simulasi pengecekan akun staf loket
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      if (username === 'admin1' && password === 'admin123') {
-        // FIX INTEGRASI: Titipkan kredensial admin secara riil ke session storage hulu
-        sessionStorage.setItem('isAdminLoggedIn', 'true');
-        sessionStorage.setItem('adminProfileData', JSON.stringify({
-          username: "admin1",
-          nama: "Staf Operasional 1",
-          role: "Petugas Loket"
-        }));
+    try {
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-        // Akses disetujui, alihkan ke tahap pemilihan loket tugas
-        setShowSelectLoketModal(true);
-      } else {
-        setError('Akses Ditolak! Username atau Kata Sandi Staf salah.');
+      const resData = await response.json();
+
+      if (!response.ok || !resData.success) {
+        throw new Error(resData.message || "Akses Ditolak! Terjadi kesalahan.");
       }
-    }, 1000);
+
+      // KONEKSI BERHASIL: Titipkan kredensial dinamis dari backend ke sessionStorage
+      sessionStorage.setItem("isAdminLoggedIn", "true");
+      sessionStorage.setItem(
+        "adminProfileData",
+        JSON.stringify({
+          id: resData.data.id,
+          username: resData.data.username, // Ini tetap username
+          nama: resData.data.nama_staf, // Pastikan ini mengambil nama_staf ("Admin UNSAP")
+          role: resData.data.username, // Ubah role menjadi username sesuai request kamu!
+        }),
+      );
+
+      // Buka modal penugasan loket tugas
+      setShowSelectLoketModal(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // FUNGSI AKSI SAAT STAF MEMILIH MEJA TUGAS
   const handlePilihLoket = (loket) => {
     setShowSelectLoketModal(false);
-    
+
     // Titipkan data loket pilihan ke dalam loker sessionStorage browser
-    sessionStorage.setItem('loket_tugas_aktif', JSON.stringify({
-      id: loket.id,
-      kode: loket.kode,
-      nama: loket.nama,
-      status: "Buka"
-    }));
-    
+    sessionStorage.setItem(
+      "loket_tugas_aktif",
+      JSON.stringify({
+        id: loket.id,
+        kode: loket.kode,
+        nama: loket.nama,
+        status: "Buka",
+      }),
+    );
+
     // Alihkan navigasi masuk ke dalam Dashboard Utama Staf
-    navigate('/admin/dashboard');
+    navigate("/admin/dashboard");
   };
 
   return {
@@ -89,6 +105,6 @@ export default function useLoginAdmin() {
     listLoketTugas,
     handlePilihLoket,
     isAdminLoggedIn,
-    navigate
+    navigate,
   };
 }

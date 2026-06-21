@@ -8,6 +8,7 @@ import {
   UserCheck,
   Trash2,
   BellRing,
+  Power,
 } from "lucide-react";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -41,17 +42,18 @@ export default function HomeUser() {
     handleConfirmPembatalan,
     loketPemanggil,
     masterLoket,
+    showLogoutModal,
+    setShowLogoutModal,
+    handleConfirmLogout,
   } = useHomeUser();
 
   const punyaTiketAktif = isLoggedIn && nomorTiketBaru;
   const isMonitorUtamaTutup = layananAktif.status === "Tutup";
 
-  // Scan dinamis konter fisik mana di database yang sedang aktif memanggil nomor di layar utama
   const konterFisikPemanggil = masterLoket?.find(
     (l) => l.aktif === layananAktif.aktifDisplay && l.status === "Buka"
   );
 
-  // LOGIKA PENGAMAN ALUR: Efek kedip pulsa hanya menyala jika nomor mahasiswa tersebut yang dipanggil riil
   const isGilirankuDipanggil = punyaTiketAktif && (layananAktif.aktifDisplay === nomorTiketBaru);
 
   const getButtonProps = () => {
@@ -142,14 +144,12 @@ export default function HomeUser() {
         )}
 
         {/* LAYOUT DUA KOLOM ATAS */}
-        {/* REVISI HEIGHT: Menambah tinggi batas utama card dari h-[340px] ke h-[380px] agar lebih lega */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
           
           {/* MONITOR UTAMA BERDASARKAN KATEGORI LAYANAN */}
           <section className="md:col-span-2">
             <Card className={`h-[380px] flex flex-col p-6 relative overflow-hidden transition-all duration-200 ${isMonitorUtamaTutup ? "opacity-65" : ""}`}>
               
-              {/* BARIS 1: INTEGRASI STROKE ATAS RESMI */}
               <div className="absolute top-0 left-0 w-full h-[26px] bg-brand-primary flex items-center justify-center border-b border-brand-primary/10 select-none">
                 <span className="text-[9px] font-black tracking-[0.25em] text-white uppercase flex items-center justify-center gap-2">
                   <Ticket size={14} className="shrink-0" /> 
@@ -157,7 +157,6 @@ export default function HomeUser() {
                 </span>
               </div>
 
-              {/* BARIS 2: HIRARKI JUDUL UTAMA & BADGE STATUS */}
               <div className="flex items-center justify-between gap-4 mt-4 w-full h-9">
                 <h1 className="text-lg sm:text-xl font-black tracking-tight text-text-main flex items-center gap-1.5 truncate">
                   <span>{layananAktif.judulTampilan}</span>
@@ -172,7 +171,6 @@ export default function HomeUser() {
                 </Badge>
               </div>
 
-              {/* BARIS 3: AREA BOKS TENGAH INTEGRASI */}
               <div className="flex-1 w-full flex flex-col justify-between bg-bg-muted-box border border-border-default rounded-2xl text-center max-w-md mx-auto my-3 min-h-[170px] relative overflow-hidden pt-5 shadow-inner">
                 {loketPemanggil && loketPemanggil.kategori === selectedKategori ? (
                   <div className="flex flex-col items-center justify-center space-y-2 animate-pulse text-success px-4 pb-4 flex-1">
@@ -185,7 +183,6 @@ export default function HomeUser() {
                   </div>
                 ) : (
                   <div className="flex flex-col justify-between h-full flex-1">
-                    {/* Sisi Atas: Nomor Panggil Utama */}
                     <div className="flex flex-col items-center justify-center flex-1 py-1">
                       <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.15em]">
                         Sedang Dipanggil
@@ -197,22 +194,18 @@ export default function HomeUser() {
                       </div>
                     </div>
 
-                    {/* Sisi Bawah: Spanduk Informasi Rute Bersih (Ukuran Text Dibesarkan, Tanpa Duplikasi) */}
                     <div className="w-full">
                       {!isMonitorUtamaTutup && layananAktif.aktifDisplay !== "—" ? (
                         isGilirankuDipanggil ? (
-                          /* KONDISI A: Panggilan milik tiket sendiri (Warna Hijau + Efek Sirene Kedip) */
                           <div className="w-full bg-emerald-600 dark:bg-emerald-500 text-white py-2 px-4 flex items-center justify-center gap-1.5 text-sm font-black uppercase tracking-wide shadow-inner select-none animate-[pulse_2s_infinite]">
                             <span>✨ MENUJU LOKET {konterFisikPemanggil ? konterFisikPemanggil.kode : layananAktif.kodeDisplay.replace("LOKET ", "").split(' / ')[0]}</span>
                           </div>
                         ) : (
-                          /* KONDISI B: Panggilan milik orang lain (Bersih, Formal, Text Lebih Besar, No Ganda) */
                           <div className="w-full bg-bg-main/80 border-t border-border-default/80 text-text-muted py-2 px-4 flex items-center justify-center text-sm font-black uppercase tracking-wide select-none">
                             <span>LOKET {konterFisikPemanggil ? konterFisikPemanggil.kode : layananAktif.kodeDisplay.replace("LOKET ", "").split(' / ')[0]}</span>
                           </div>
                         )
                       ) : (
-                        /* KONDISI C: Standby / Tutup */
                         <div className="w-full bg-border-default/40 text-text-muted/60 py-2.5 px-4 text-[10px] font-black uppercase tracking-widest select-none">
                           {isMonitorUtamaTutup ? "OPERASIONAL BERHENTI" : "MENUNGGU PANGGILAN ANTRIAN"}
                         </div>
@@ -222,7 +215,6 @@ export default function HomeUser() {
                 )}
               </div>
 
-              {/* Baris 4: Tombol Utama Aksi */}
               <div className="max-w-md mx-auto w-full pt-1">
                 <Button
                   variant="primary"
@@ -246,7 +238,6 @@ export default function HomeUser() {
                 <p className="text-[11px] text-text-muted mt-0.5">Daftar urutan loket aktif saat ini</p>
               </div>
 
-              {/* REVISI HEIGHT SCROLL: Area list dinaikkan ke h-[275px] agar selaras peninggian boks utama */}
               <div className="h-[275px] overflow-y-auto pr-1 space-y-2.5 scrollbar-thin w-full">
                 <div className="flex items-center p-3 h-[52px] rounded-xl border border-brand-primary/30 bg-brand-primary/5 w-full">
                   <div className="flex items-center gap-2 shrink-0">
@@ -342,7 +333,46 @@ export default function HomeUser() {
 
       <Footer />
 
-      {/* MODAL WINDOWS */}
+      {/* ========================================================================= */}
+      {/* WINDOWS SYSTEM MODALS */}
+      {/* ========================================================================= */}
+      
+      {/* REVISI PREMIUM: MODAL LOGOUT USER BERBASIS FRAMER MOTION KAMU */}
+      <Modal 
+        isOpen={showLogoutModal} 
+        onClose={() => setShowLogoutModal(false)} 
+        title="Konfirmasi Keluar Sistem" 
+        showCloseButton={true}
+      >
+        <div className="space-y-4 py-1 text-center">
+          <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">
+            <Power size={22} />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-text-main">Apakah Anda Yakin Ingin Keluar?</p>
+            <p className="text-[11px] text-text-muted px-4 leading-normal">
+              Sesi aktif Anda akan dibersihkan dengan aman demi melindungi privasi data antrean mahasiswa.
+            </p>
+          </div>
+          <div className="flex w-full gap-3 pt-2">
+            <button 
+              type="button"
+              onClick={() => setShowLogoutModal(false)} 
+              className="flex-1 cursor-pointer rounded-xl border border-border-default bg-transparent py-2 text-xs font-bold text-text-muted transition-all hover:bg-bg-main"
+            >
+              Batal
+            </button>
+            <button 
+              type="button"
+              onClick={handleConfirmLogout} 
+              className="flex-1 border-0 bg-danger py-2 text-xs font-black text-white transition-all rounded-xl flex items-center justify-center cursor-pointer hover:bg-red-600"
+            >
+              Ya, Keluar Akun
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <Modal isOpen={showAuthWarningModal} onClose={() => setShowAuthWarningModal(false)} title="Akses Pengambilan Tiket Ditolak">
         <div className="text-center flex flex-col items-center space-y-4 py-2">
           <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500"><AlertCircle size={24} /></div>
