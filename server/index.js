@@ -3,9 +3,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import layananRoutes from './routes/layananRoutes.js';
 import antreanRoutes from './routes/antreanRoutes.js';
-import authRoutes from './routes/authRoutes.js'; // <-- 1. Tambah import ini
+import authRoutes from './routes/authRoutes.js';
+import loketRoutes from './routes/loketRoutes.js';
+import { initBroadcast } from './config/broadcast.js';
 
 dotenv.config();
+initBroadcast();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,7 +24,8 @@ app.get('/', (req, res) => {
 // Pendaftaran Seluruh Jalur API Utama
 app.use('/api/layanan', layananRoutes);
 app.use('/api/antrean', antreanRoutes);
-app.use('/api/auth', authRoutes); // <-- 2. Tambah registrasi ini
+app.use('/api/auth', authRoutes);
+app.use('/api/loket', loketRoutes);
 
 app.listen(PORT, () => {
   console.log(`=========================================`);

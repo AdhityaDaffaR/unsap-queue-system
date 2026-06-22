@@ -48,7 +48,8 @@ export default function DashboardAdmin() {
   } = useDashboardAdmin();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isAdminTutup = loketInfo.status === "Tutup";
+  const isAdminTutup = loketInfo.status === "tutup";
+  const statusLabel = !isAdminTutup && isAdminLoggedIn ? "Buka" : "Tutup";
 
   let namaTampilanKonter = loketInfo.nama;
   if (loketInfo.id === 4 || loketInfo.kode === "3")
@@ -116,9 +117,9 @@ export default function DashboardAdmin() {
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${!isAdminTutup && isAdminLoggedIn ? "bg-success animate-pulse" : "bg-danger"}`}
                   />
-                  <span>
-                    Loket {isAdminLoggedIn ? loketInfo.status : "Tutup"}
-                  </span>
+                    <span>
+                      Loket {statusLabel}
+                    </span>
                 </div>
               </Badge>
             </div>
@@ -255,48 +256,62 @@ export default function DashboardAdmin() {
                 </h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
-                {!isAdminTutup && nomorAktif !== "—" && isAdminLoggedIn ? (
+                {!isAdminTutup && isAdminLoggedIn ? (
                   <>
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-brand-primary/30 bg-brand-primary/5 w-full">
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-brand-primary text-white">
-                          1
-                        </span>
-                        <span className="text-xs font-bold text-brand-primary">
-                          Aktif Dilayani
-                        </span>
-                      </div>
-                      <span className="text-sm font-black text-brand-primary tracking-tight">
-                        {nomorAktif}
-                      </span>
-                    </div>
-                    {daftarSelanjutnya
-                      .filter((nomor) => {
-                        const angkaNomor = parseInt(nomor.split("-")[1], 10);
-                        const angkaAktif = parseInt(
-                          nomorAktif.split("-")[1],
-                          10,
-                        );
-                        return angkaNomor > angkaAktif;
-                      })
-                      .map((nomor, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 rounded-xl border border-border-default bg-bg-main/50 opacity-75 w-full"
-                        >
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-border-default text-text-muted">
-                              {index + 2}
-                            </span>
-                            <span className="text-xs font-semibold text-text-muted">
-                              Nomor Tiket
-                            </span>
-                          </div>
-                          <span className="text-sm font-black text-text-muted tracking-tight">
-                            {nomor}
+                    {nomorAktif !== "—" && (
+                      <div className="flex items-center justify-between p-3 rounded-xl border border-brand-primary/30 bg-brand-primary/5 w-full">
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-brand-primary text-white">
+                            1
+                          </span>
+                          <span className="text-xs font-bold text-brand-primary">
+                            Aktif Dilayani
                           </span>
                         </div>
-                      ))}
+                        <span className="text-sm font-black text-brand-primary tracking-tight">
+                          {nomorAktif}
+                        </span>
+                      </div>
+                    )}
+                    {(() => {
+                      const angkaAktif = nomorAktif !== "—"
+                        ? parseInt(nomorAktif.split("-")[1], 10)
+                        : 0;
+                      const filtered = daftarSelanjutnya.filter((nomor) => {
+                        const angkaNomor = parseInt(nomor.split("-")[1], 10);
+                        return angkaNomor > angkaAktif;
+                      });
+                      const displayList = nomorAktif !== "—" ? filtered : daftarSelanjutnya;
+                      return displayList.length > 0 ? (
+                        displayList.map((nomor, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 rounded-xl border border-border-default bg-bg-main/50 opacity-75 w-full"
+                          >
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-border-default text-text-muted">
+                                {nomorAktif !== "—" ? index + 2 : index + 1}
+                              </span>
+                              <span className="text-xs font-semibold text-text-muted">
+                                Nomor Tiket
+                              </span>
+                            </div>
+                            <span className="text-sm font-black text-text-muted tracking-tight">
+                              {nomor}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2">
+                          <div className="w-10 h-10 rounded-full bg-border-default flex items-center justify-center text-text-muted">
+                            <ChevronRight size={20} />
+                          </div>
+                          <p className="text-[11px] font-medium text-text-muted">
+                            Daftar Tunggu Kosong
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2">

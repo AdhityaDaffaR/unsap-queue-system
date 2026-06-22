@@ -7,11 +7,13 @@ import {
   User,
   Lock,
   ArrowRight,
+  RefreshCw,
 } from "lucide-react";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Modal from "../../components/ui/Modal"; 
+import Badge from "../../components/ui/Badge";
 import useLoginAdmin from "../../hooks/admin/useLoginAdmin";
 
 export default function LoginAdmin() {
@@ -29,6 +31,7 @@ export default function LoginAdmin() {
     setShowSelectLoketModal,
     listLoketTugas,
     handlePilihLoket,
+    fetchError,
     isAdminLoggedIn,
     navigate,
   } = useLoginAdmin();
@@ -147,33 +150,75 @@ export default function LoginAdmin() {
       >
         <div className="space-y-3 py-1">
           <div className="text-center pb-2">
-            <p className="text-box text-[11px] text-text-muted leading-normal">
+            <p className="text-[11px] text-text-muted leading-normal">
               Otorisasi berhasil. Silakan pilih meja loket tugas Anda hari ini untuk mulai mengendalikan antrean aktif.
             </p>
           </div>
 
-          <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
-            {listLoketTugas.map((loket) => (
+          {fetchError && (
+            <div className="p-3 text-xs font-semibold text-rose-600 bg-rose-500/10 border border-rose-500/20 rounded-xl text-center">
+              {fetchError}
               <button
-                key={loket.id}
-                type="button"
-                onClick={() => handlePilihLoket(loket)}
-                className="w-full flex items-center justify-between p-3.5 text-left rounded-xl border border-border-default bg-bg-main/50 hover:bg-brand-primary/5 hover:border-brand-primary/20 active:scale-[0.99] transition-all cursor-pointer text-text-main group select-none"
+                onClick={() => { fetchLoketList(); }}
+                className="ml-2 underline inline-flex items-center gap-1 cursor-pointer bg-transparent border-0 text-rose-600"
               >
-                <div className="flex items-center gap-3 truncate">
-                  <div className="w-7 h-7 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary text-xs font-black shrink-0">
-                    {loket.kode}
-                  </div>
-                  <span className="text-xs font-bold truncate">
-                    {loket.nama}
-                  </span>
-                </div>
-                <ArrowRight
-                  size={14}
-                  className="text-text-muted opacity-0 group-hover:opacity-100 group-hover:text-brand-primary transition-all shrink-0"
-                />
+                <RefreshCw size={12} /> Muat Ulang
               </button>
-            ))}
+            </div>
+          )}
+
+          {listLoketTugas.length === 0 && !fetchError && (
+            <div className="text-center py-6">
+              <div className="w-10 h-10 rounded-full bg-border-default flex items-center justify-center text-text-muted mx-auto">
+                <RefreshCw size={20} className="animate-spin" />
+              </div>
+              <p className="text-xs text-text-muted mt-3">Memuat daftar loket...</p>
+            </div>
+          )}
+
+          <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
+            {listLoketTugas.map((loket) => {
+              const isDipakai = loket.id_staf_aktif !== null;
+              return (
+                <button
+                  key={loket.id}
+                  type="button"
+                  onClick={() => !isDipakai && handlePilihLoket(loket)}
+                  disabled={isDipakai}
+                  className={`w-full flex items-center justify-between p-3.5 text-left rounded-xl border bg-bg-main/50 transition-all cursor-pointer text-text-main group select-none ${
+                    isDipakai
+                      ? "border-amber-500/20 opacity-60 cursor-not-allowed"
+                      : "border-border-default hover:bg-brand-primary/5 hover:border-brand-primary/20 active:scale-[0.99]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    <div className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs font-black shrink-0 ${
+                      isDipakai
+                        ? "bg-amber-500/10 border-amber-500/20 text-amber-600"
+                        : "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+                    }`}>
+                      {loket.kode_loket}
+                    </div>
+                    <div className="truncate">
+                      <span className="text-xs font-bold truncate block">
+                        {loket.nama_loket}
+                      </span>
+                      <span className="text-[9px] text-text-muted font-medium">
+                        {loket.layanan?.nama_layanan || "—"}
+                      </span>
+                    </div>
+                  </div>
+                  {isDipakai ? (
+                    <Badge variant="warning" className="shrink-0 scale-90">Dipakai</Badge>
+                  ) : (
+                    <ArrowRight
+                      size={14}
+                      className="text-text-muted opacity-0 group-hover:opacity-100 group-hover:text-brand-primary transition-all shrink-0"
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </Modal>

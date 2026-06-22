@@ -4,8 +4,9 @@ import useDisplayMonitor from '../../hooks/user/useDisplayMonitor';
 import UnsapLogo from '../../assets/logo-unsap.png';
 
 export default function DisplayMonitor() {
-  const { layananMonitorList } = useDisplayMonitor();
+  const { layananMonitorList, audioReady, activateAudio } = useDisplayMonitor();
   const [time, setTime] = useState(new Date());
+  const [audioDismissed, setAudioDismissed] = useState(false);
 
   // Jam Digital Live Real-Time
   useEffect(() => {
@@ -14,7 +15,34 @@ export default function DisplayMonitor() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0d16] text-[#e2e8f0] flex flex-col select-none overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#0a0d16] text-[#e2e8f0] flex flex-col select-none overflow-hidden font-sans relative">
+      {!audioReady && !audioDismissed && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#151c2c] border border-slate-700/80 rounded-2xl p-4 shadow-2xl w-64">
+          <div className="flex items-start gap-3 mb-3">
+            <Volume2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-white">Aktifkan Suara</p>
+              <p className="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+                Monitor membutuhkan izin suara untuk memanggil nomor antrian melalui pengeras suara.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={activateAudio}
+              className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl transition-colors"
+            >
+              Izinkan
+            </button>
+            <button
+              onClick={() => setAudioDismissed(true)}
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-semibold py-2 rounded-xl transition-colors"
+            >
+              Tolak
+            </button>
+          </div>
+        </div>
+      )}
       
       {/* HEADER MONITOR UTAMA PREMIUM (Skema Slate Soft) */}
       <header className="bg-[#151c2c] border-b border-slate-800/80 px-8 py-4 flex items-center justify-between shadow-lg z-10">
@@ -98,7 +126,7 @@ export default function DisplayMonitor() {
           <div className="space-y-4 flex-1 flex flex-col min-h-0">
             <div>
               <h3 className="text-xs font-black tracking-wider text-slate-400 uppercase">DAFTAR ANTRIAN LAYANAN SELANJUTNYA</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Urutan antrean berkelompok berdasarkan klaster urusan</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Urutan antrian berkelompok berdasarkan klaster urusan</p>
             </div>
 
             {/* List Row untuk masing-masing 4 Rumpun Layanan */}
