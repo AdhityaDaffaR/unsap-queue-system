@@ -32,9 +32,9 @@ export default function ThemeToggle() {
       aria-label="Toggle Theme"
     >
       {isDark ? (
-        <Sun size={18} className="text-warning shrink-0 animate-[spin_20s_linear_infinite]" />
+        <Sun size={16} className="text-text-main shrink-0" />
       ) : (
-        <Moon size={18} className="text-text-muted shrink-0" />
+        <Moon size={16} className="text-text-muted shrink-0" />
       )}
     </button>
   );
