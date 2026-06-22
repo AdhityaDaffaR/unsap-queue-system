@@ -1,11 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
-// Aktifkan pembacaan env
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+// PENTING: Gunakan Service Role Key agar bisa bypass tabel yang tanpa RLS Policy
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Eksekusi koneksi ke cloud database Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Supabase URL atau Service Role Key belum disetel di .env');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseServiceKey);

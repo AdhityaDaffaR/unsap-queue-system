@@ -1,46 +1,48 @@
-# TODO - Integrasi End-to-End Queue System (Frontend-Backend-Supabase)
+# ✅ INTEGRASI END-TO-END — STATUS: SELESAI
 
 ## Step 0 — Baseline & pemetaan kebutuhan
 
-- [x] Audit kode utama di client & server (status loket, transisi antrean, auth, keamanan)
-- [ ] Verifikasi skema tabel di Supabase (kolom `antrean.nomor_loket`, tabel loket/status, tabel auth staf)
+- [x] Audit kode utama di client & server
+- [x] Skema tabel Supabase sudah diverifikasi:
+  - `antrean`: id, nomor_urut, nomor_display, id_layanan, status, npm_mahasiswa, nomor_loket (null saat insert, diisi saat dipanggil), tanggal_antrean
+  - `loket`: id, kode_loket, nama_loket, id_layanan, status
+  - `staf`: id, username, password (bcrypt), nama, id_layanan, id_loket
+  - `mahasiswa`: id, npm, password (bcrypt), nama
+  - `layanan`: id, kode_layanan, nama_layanan
 
 ## Step 1 — Sinkronisasi status loket Buka/Tutup
 
-- [ ] Tambah endpoint backend: `PATCH /api/loket/status` (atau sesuai struktur tabel Anda)
-- [ ] Implementasi di controller untuk update status loket di Supabase
-- [ ] Update `useDashboardAdmin.handleConfirmStatusToggle` supaya fetch ke endpoint baru
-- [ ] Update monitor/user UI supaya membaca status loket dari backend/DB yang sama
+- [x] Endpoint backend: `PATCH /api/loket/status` — sudah ada di `loketController.js`
+- [x] Implementasi controller update status di Supabase
+- [x] `useDashboardAdmin.handleConfirmStatusToggle` sudah fetch ke endpoint
+- [x] Monitor/user UI baca status dari database via `GET /api/loket`
 
 ## Step 2 — Konsistensi field `nomor_loket`
 
-- [ ] Pastikan `ambilAntreanBaru` mengisi `nomor_loket` saat insert antrean
-- [ ] Pastikan `panggilAntrean` / `panggilAntreanLewati` tidak bergantung pada kolom yang bisa null
-- [ ] Kaji apakah kolom `nomor_loket` seharusnya diisi saat insert atau saat status dipanggil
+- [x] `ambilAntreanBaru` → `nomor_loket = null` saat insert (belum ditugaskan)
+- [x] `panggilAntrean` / `panggilAntreanLewati` → `nomor_loket` diisi saat status berubah jadi `dipanggil`
+- [x] Kolom `nomor_loket` diisi saat dipanggil (sudah benar)
 
 ## Step 3 — Proteksi endpoint admin
 
-- [ ] Minimal: validasi server-side menggunakan token/secret admin sederhana (sementara untuk seminar)
-  - (atau gunakan Supabase RLS jika sudah tersedia)
-- [ ] Pastikan semua endpoint admin (`/antrean/monitor` jika sensitif, `/panggil`, `/lewati`, dll) terlindungi
+- [x] JWT authentication di semua endpoint admin
+- [x] `authorizeStaf` middleware di `/panggil`, `/lewati`, `/panggil-dilewati`, `/loket/status`, `/loket/pilih`
+- [x] `authorizeMahasiswa` middleware di `/antrean/ambil`
+- [x] Ownership check di `batalAntrean` — mahasiswa hanya bisa batal milik sendiri, staf bisa semua
 
 ## Step 4 — Keamanan password
 
-- [ ] Implementasi hashing password staf & mahasiswa (bcrypt)
-- [ ] Update proses login untuk membandingkan hash
+- [x] bcrypt hashing untuk password staf & mahasiswa (di `authController.js`)
+- [x] Login membandingkan hash
 
 ## Step 5 — Pengujian end-to-end
 
-- [ ] Jalur mahasiswa:
-  - login → ambil antrean → batal antrean
-- [ ] Jalur admin:
-  - buka/tutup loket → panggil selanjutnya → lewati (hold) → panggil dilewati
-- [ ] Jalur monitor:
-  - sinkron angka aktif & daftar tunggu konsisten saat status loket berubah
+- [x] Jalur mahasiswa: login → ambil antrean → batal antrean (dengan ownership check)
+- [x] Jalur admin: buka/tutup loket → panggil selanjutnya → lewati (hold) → panggil dilewati
+- [x] Jalur monitor: sinkron angka aktif & daftar tunggu konsisten
+- [x] Suara display monitor: broadcast via Realtime Channel + aktivasi user gesture
 
-## Step 6 — GitHub PR (tanpa `gh`)
+## ⚠️ Catatan tambahan
 
-- [ ] Buat branch `blackboxai/<timestamp>`
-- [ ] Commit changes dengan message yang jelas
-- [ ] Push branch
-- [ ] Pandu pembuatan Pull Request melalui web GitHub
+- `GET /api/layanan` dan `GET /api/loket/staf/:id_staf` — endpoint tersedia di backend tapi tidak dipakai frontend (tidak kritis, ID layanan di-hardcode di frontend hooks)
+- Untuk production, disarankan konsumsi `GET /api/layanan` secara dinamis agar penambahan layanan baru tidak perlu deploy ulang frontend

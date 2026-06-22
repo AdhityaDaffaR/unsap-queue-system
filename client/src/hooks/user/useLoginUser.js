@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../config/api';
 
 export default function useLoginUser() {
   const navigate = useNavigate();
@@ -29,21 +30,16 @@ export default function useLoginUser() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login-mahasiswa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          npm: nim, 
-          password: tanggalLahir 
-        })
+      const resData = await api.post('/api/auth/login-mahasiswa', { 
+        npm: nim, 
+        password: tanggalLahir 
       });
 
-      const resData = await response.json();
-
-      if (!response.ok || !resData.success) {
+      if (!resData.success) {
         throw new Error(resData.message || 'Gagal login, periksa kembali data Anda.');
       }
       
+      sessionStorage.setItem('tokenMahasiswa', resData.token);
       sessionStorage.setItem('isLoggedInUser', 'true');
       sessionStorage.setItem('userProfileData', JSON.stringify({
         id: resData.data.id,
@@ -66,7 +62,6 @@ export default function useLoginUser() {
     setShowGoogleModal(false);
     setIsLoading(true);
     
-    // Google Modal murni bertindak sebagai simulasi penutup tanpa membawa data hardcoded luar
     setTimeout(() => {
       setIsLoading(false);
       setError('Metode Google Sign-In eksternal dinonaktifkan sementara di lingkungan localhost.');
