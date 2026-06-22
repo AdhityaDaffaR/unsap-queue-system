@@ -1,18 +1,16 @@
 import React from 'react';
 
-export default function Button({ children, onClick, variant = 'primary', className = '' }) {
-  const baseStyle = "w-full py-2.5 rounded-lg font-medium text-sm transition-all active:scale-[0.98] cursor-pointer text-center block";
+export default function Button({ children, onClick, variant = 'primary', type = 'button', disabled = false, className = '' }) {
+  // Transisi hanya diterapkan pada opacity dan shadow, BUKAN pada warna global
+  const baseStyle = "w-full h-10 px-4 rounded-md text-sm font-medium flex items-center justify-center gap-2 select-none transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:pointer-events-none";
   
   const variants = {
-    // Tombol Utama (Solid Blue) - Konsisten di kedua mode
-    primary: "bg-brand-primary hover:bg-brand-primary-hover text-white shadow-sm",
-    
-    // PERBAIKAN TOMBOL SEKUNDER: Hover state yang cerdas & adaptif mengikuti tema
-    secondary: "bg-transparent border border-border-default text-text-main hover:bg-bg-muted-box hover:text-brand-primary hover:border-brand-primary/30 dark:hover:text-text-main"
+    primary: "bg-brand-primary text-white hover:bg-brand-primary-hover shadow-sm border border-transparent",
+    secondary: "bg-bg-surface border border-border-default text-text-main hover:bg-bg-muted-box"
   };
 
   return (
-    <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
+    <button type={type} onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
       {children}
     </button>
   );

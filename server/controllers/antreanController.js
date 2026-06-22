@@ -1,224 +1,178 @@
-import { supabase } from '../config/supabase.js';
+import { supabase } from "../config/supabase.js";
 
-// =========================================================================
-// FITUR PENGGUNA: MAHASISWA / KIOS ANTREAN
-// =========================================================================
+// --- FUNGSI MAHASISWA ---
 
-/**
- * 1. Fungsi mengambil nomor antrean baru
- * POST /api/antrean/ambil
- */
 export const ambilAntreanBaru = async (req, res) => {
   try {
-    const { id_layanan } = req.body;
+    const { id_layanan, npm_mahasiswa } = req.body;
+    if (!id_layanan || !npm_mahasiswa)
+      return res
+        .status(400)
+        .json({ success: false, message: "Data tidak lengkap!" });
 
-    if (!id_layanan) {
-      return res.status(400).json({ success: false, message: 'ID layanan wajib diisi!' });
-    }
-
-    // Ambil data layanan untuk mendapatkan kode_layanan (cth: 'A', 'Y')
-    const { data: dataLayanan, error: errorLayanan } = await supabase
-      .from('layanan')
-      .select('kode_layanan')
-      .eq('id', id_layanan)
+    const { data: dataLayanan } = await supabase
+      .from("layanan")
+      .select("kode_layanan")
+      .eq("id", id_layanan)
       .single();
+    if (!dataLayanan)
+      return res
+        .status(404)
+        .json({ success: false, message: "Layanan tidak ditemukan!" });
 
-    if (errorLayanan || !dataLayanan) {
-      return res.status(404).json({ success: false, message: 'Kategori layanan tidak ditemukan!' });
-    }
-
-    const kode = dataLayanan.kode_layanan;
-
-    // Hitung jumlah antrean yang ada hari ini untuk menentukan nomor_urut berikutnya
-    const hariIni = new Date().toISOString().split('T')[0];
-    const { count, error: errorCount } = await supabase
-      .from('antrean')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', `${hariIni}T00:00:00.000Z`);
-
-    if (errorCount) {
-      return res.status(400).json({ success: false, message: errorCount.message });
-    }
+    const hariIni = new Date().toISOString().split("T")[0];
+    const { count } = await supabase
+      .from("antrean")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", `${hariIni}T00:00:00.000Z`)
+      .eq("id_layanan", id_layanan);
 
     const nomorUrutBerikutnya = (count || 0) + 1;
-    const nomorDisplayBerikutnya = `${kode}-${nomorUrutBerikutnya}`;
+    const nomorDisplayBerikutnya = `${dataLayanan.kode_layanan}-${nomorUrutBerikutnya.toString().padStart(2, "0")}`;
 
-    // Masukkan data antrean baru ke database dengan status 'menunggu'
-    const { data: antreanBaru, error: errorInsert } = await supabase
-      .from('antrean')
+    const { data, error } = await supabase
+      .from("antrean")
       .insert([
         {
           nomor_urut: nomorUrutBerikutnya,
           nomor_display: nomorDisplayBerikutnya,
-          id_layanan: id_layanan,
-          status: 'menunggu'
-        }
+          id_layanan,
+          status: "menunggu",
+          npm_mahasiswa,
+        },
       ])
       .select()
       .single();
+    if (error) throw error;
 
-    if (errorInsert) {
-      return res.status(400).json({ success: false, message: errorInsert.message });
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: 'Tiket antrean berhasil diambil!',
-      data: antreanBaru
-    });
-
+    return res.status(201).json({ success: true, data });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-/**
- * 2. Fitur Baru: Membatalkan tiket antrean
- * PATCH /api/antrean/batal
- */
 export const batalAntrean = async (req, res) => {
   try {
     const { id_antrean } = req.body;
-
-    if (!id_antrean) {
-      return res.status(400).json({ success: false, message: 'ID antrean wajib diisi!' });
-    }
-
-    // Perbarui status antrean dari 'menunggu' menjadi 'batal'
-    const { data: hasilBatal, error: errorBatal } = await supabase
-      .from('antrean')
-      .update({ status: 'batal' })
-      .eq('id', id_antrean)
+    const { data, error } = await supabase
+      .from("antrean")
+      .update({ status: "batal" })
+      .eq("id", id_antrean)
       .select();
-
-    if (errorBatal) {
-      return res.status(400).json({ success: false, message: errorBatal.message });
-    }
-
-    if (!hasilBatal || hasilBatal.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Data antrean tidak ditemukan atau gagal dibatalkan! Periksa kembali RLS UPDATE Anda.' 
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: `Antrean ${hasilBatal[0].nomor_display} berhasil dibatalkan!`,
-      data: hasilBatal[0]
-    });
-
+    if (error) throw error;
+    return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
+// --- FUNGSI ADMIN / STAF ---
 
-// =========================================================================
-// FITUR PENGGUNA: ADMIN / STAF LOKET PELAYANAN
-// =========================================================================
-
-/**
- * 3. Fungsi memanggil antrean berikutnya berdasarkan urutan terkecil
- * PATCH /api/antrean/panggil
- */
 export const panggilAntrean = async (req, res) => {
   try {
     const { id_layanan, nomor_loket } = req.body;
 
-    if (!id_layanan || !nomor_loket) {
-      return res.status(400).json({ success: false, message: 'ID layanan dan nomor loket wajib diisi!' });
-    }
+    // Selesaikan antrean yang sedang dipanggil di loket tersebut
+    await supabase
+      .from("antrean")
+      .update({ status: "selesai" })
+      .eq("nomor_loket", nomor_loket)
+      .eq("status", "dipanggil");
 
-    // Cari antrean paling pertama yang statusnya masih 'menunggu' pada layanan tersebut
-    const { data: antreanBerikutnya, error: errorCari } = await supabase
-      .from('antrean')
-      .select('*')
-      .eq('id_layanan', id_layanan)
-      .eq('status', 'menunggu')
-      .order('nomor_urut', { ascending: true })
+    // Ambil antrean 'menunggu' berikutnya
+    const { data: next, error } = await supabase
+      .from("antrean")
+      .select("*")
+      .eq("id_layanan", id_layanan)
+      .eq("status", "menunggu")
+      .order("nomor_urut", { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    if (errorCari) {
-      return res.status(400).json({ success: false, message: errorCari.message });
-    }
+    if (!next)
+      return res.status(200).json({ success: true, message: "Antrean kosong" });
 
-    if (!antreanBerikutnya) {
-      return res.status(200).json({ success: true, message: 'Antrean sudah habis atau kosong!' });
-    }
-
-    // Update status antrean menjadi 'dipanggil' dan sematkan nomor loket eksekutor
-    const { data: hasilUpdate, error: errorUpdate } = await supabase
-      .from('antrean')
-      .update({ status: 'dipanggil', nomor_loket: nomor_loket })
-      .eq('id', antreanBerikutnya.id)
+    const { data: updated, error: errUpdate } = await supabase
+      .from("antrean")
+      .update({ status: "dipanggil", nomor_loket })
+      .eq("id", next.id)
       .select();
+    if (errUpdate) throw errUpdate;
 
-    if (errorUpdate) {
-      return res.status(400).json({ success: false, message: errorUpdate.message });
-    }
-
-    if (!hasilUpdate || hasilUpdate.length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Gagal memperbarui status antrean. Pastikan RLS Policy UPDATE aktif di Supabase!' 
-      });
-    }
-
-    const dataTiket = hasilUpdate[0];
-
-    return res.status(200).json({
-      success: true,
-      message: `Nomor ${dataTiket.nomor_display} silahkan menuju loket ${nomor_loket}`,
-      data: dataTiket
-    });
-
+    return res.status(200).json({ success: true, data: updated[0] });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 };
 
-/**
- * 4. Fungsi Mengambil Data Antrean Aktif untuk Layar Monitor & Beranda
- * GET /api/antrean/monitor
- */
+export const lewatiAntrean = async (req, res) => {
+  try {
+    const { nomor_loket } = req.body;
+    const { data, error } = await supabase
+      .from("antrean")
+      .update({ status: "dilewati" })
+      .eq("nomor_loket", nomor_loket)
+      .eq("status", "dipanggil")
+      .select();
+    if (error) throw error;
+    return res.status(200).json({ success: true, data: data[0] });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const panggilAntreanLewati = async (req, res) => {
+  try {
+    const { id_antrean, nomor_loket } = req.body;
+    await supabase
+      .from("antrean")
+      .update({ status: "selesai" })
+      .eq("nomor_loket", nomor_loket)
+      .eq("status", "dipanggil");
+    const { data, error } = await supabase
+      .from("antrean")
+      .update({ status: "dipanggil", nomor_loket })
+      .eq("id", id_antrean)
+      .select();
+    if (error) throw error;
+    return res.status(200).json({ success: true, data: data[0] });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const getAntreanMonitor = async (req, res) => {
   try {
-    const hariIni = new Date().toISOString().split('T')[0];
-
-    // 1. Ambil semua antrean yang SEDANG DIPANGGIL hari ini di tiap loket
-    const { data: sedangDipanggil, error: errorDipanggil } = await supabase
-      .from('antrean')
-      .select('*, layanan(nama_layanan, kode_layanan)')
-      .eq('status', 'dipanggil')
-      .gte('created_at', `${hariIni}T00:00:00.000Z`);
-
-    if (errorDipanggil) {
-      return res.status(400).json({ success: false, message: errorDipanggil.message });
-    }
-
-    // 2. Ambil semua antrean yang MASIH MENUNGGU hari ini (diurutkan dari yang paling pertama antre)
-    const { data: sedangMenunggu, error: errorMenunggu } = await supabase
-      .from('antrean')
-      .select('*, layanan(nama_layanan, kode_layanan)')
-      .eq('status', 'menunggu')
-      .gte('created_at', `${hariIni}T00:00:00.000Z`)
-      .order('nomor_urut', { ascending: true });
-
-    if (errorMenunggu) {
-      return res.status(400).json({ success: false, message: errorMenunggu.message });
-    }
-
-    // Kembalikan dua kubu data ini ke Frontend
-    return res.status(200).json({
-      success: true,
-      data: {
-        sedangDipanggil: sedangDipanggil || [],
-        sedangMenunggu: sedangMenunggu || []
-      }
-    });
-
+    const hariIni = new Date().toISOString().split("T")[0];
+    const [dipanggil, menunggu, dilewati] = await Promise.all([
+      supabase
+        .from("antrean")
+        .select("*, layanan(nama_layanan)")
+        .eq("status", "dipanggil")
+        .gte("created_at", `${hariIni}T00:00:00.000Z`),
+      supabase
+        .from("antrean")
+        .select("*, layanan(nama_layanan)")
+        .eq("status", "menunggu")
+        .gte("created_at", `${hariIni}T00:00:00.000Z`)
+        .order("nomor_urut", { ascending: true }),
+      supabase
+        .from("antrean")
+        .select("*, layanan(nama_layanan)")
+        .eq("status", "dilewati")
+        .gte("created_at", `${hariIni}T00:00:00.000Z`)
+        .order("nomor_urut", { ascending: true }),
+    ]);
+    return res
+      .status(200)
+      .json({
+        success: true,
+        data: {
+          sedangDipanggil: dipanggil.data,
+          sedangMenunggu: menunggu.data,
+          sedangDilewati: dilewati.data,
+        },
+      });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
