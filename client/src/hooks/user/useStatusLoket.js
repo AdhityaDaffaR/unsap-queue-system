@@ -84,7 +84,7 @@ export default function useStatusLoket() {
   }, [fetchMonitorData, fetchMasterLoket]);
 
   const handleLogout = () => {
-    ["tokenMahasiswa", "isLoggedInUser", "userProfileData", "nomorTiketAktif"].forEach((k) => sessionStorage.removeItem(k));
+    ["tokenMahasiswa", "isLoggedInUser", "userProfileData", "nomorTiketAktif", "idAntreanAktif"].forEach((k) => sessionStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate("/");
   };

@@ -455,29 +455,32 @@ export default function DashboardAdmin() {
             {listLoketTugas
               .filter((l) => l.id !== loketInfo.id)
               .map((meja) => {
-                const savedMaster = sessionStorage.getItem("globalMasterLoket");
-                const globalMasterList = savedMaster
-                  ? JSON.parse(savedMaster)
-                  : [];
-                const globalMeja = globalMasterList.find(
-                  (m) => m.id === meja.id,
-                ) || { status: "Buka" };
-                const isMejaTujuanTutup = globalMeja.status === "Tutup";
+                const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
+                const isDipakai = meja.id_staf_aktif !== null && meja.id_staf_aktif !== adminProfileData.id;
+                const isMejaTujuanTutup = meja.status === "tutup" || meja.status === "Tutup";
 
                 return (
                   <button
                     key={meja.id}
                     type="button"
-                    onClick={() => handleSwitchLoket(meja)}
-                    className={`w-full flex items-center justify-between p-3.5 text-left rounded-xl border border-border-default bg-bg-main/50 hover:bg-brand-primary/5 hover:border-brand-primary/20 active:scale-[0.99] transition-all cursor-pointer text-text-main group select-none ${isMejaTujuanTutup ? "opacity-50" : ""}`}
+                    onClick={() => !isDipakai && handleSwitchLoket(meja)}
+                    disabled={isDipakai}
+                    className={`w-full flex items-center justify-between p-3.5 text-left rounded-xl border ${
+                      isDipakai
+                        ? "border-amber-500/20 opacity-60 cursor-not-allowed"
+                        : "border-border-default hover:bg-brand-primary/5 hover:border-brand-primary/20 active:scale-[0.99]"
+                    } transition-all cursor-pointer text-text-main group select-none ${isMejaTujuanTutup || isDipakai ? "opacity-50" : ""}`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary text-xs font-black">
-                        {meja.kode}
+                        {meja.kode_loket}
                       </div>
                       <span className="text-xs font-bold">
-                        {meja.nama} ({meja.subLayanan})
+                        {meja.nama_loket} ({meja.layanan?.nama_layanan || "\u2014"})
                       </span>
+                      {isDipakai && (
+                        <Badge variant="warning" className="shrink-0 scale-90">Dipakai</Badge>
+                      )}
                       {isMejaTujuanTutup && (
                         <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20 uppercase tracking-wider scale-90">
                           Tutup

@@ -76,11 +76,27 @@ export default function useHomeUser() {
             return { ...loket, aktif: dipanggil ? dipanggil.nomor_display : "—", selanjutnya: menunggu, sisa: menunggu.length };
           })
         );
+        if (isLoggedIn) {
+          const storedProfile = sessionStorage.getItem("userProfileData");
+          if (storedProfile) {
+            const npm = JSON.parse(storedProfile).npm;
+            const semuaTiket = [...sedangDipanggil, ...sedangMenunggu];
+            const tiketSaya = semuaTiket.find((t) => t.npm_mahasiswa === npm);
+            if (tiketSaya) {
+              const tiketAktif = sessionStorage.getItem("nomorTiketAktif");
+              if (!tiketAktif || tiketAktif !== tiketSaya.nomor_display) {
+                setNomorTiketBaru(tiketSaya.nomor_display);
+                sessionStorage.setItem("nomorTiketAktif", tiketSaya.nomor_display);
+                sessionStorage.setItem("idAntreanAktif", tiketSaya.id);
+              }
+            }
+          }
+        }
       }
     } catch (err) {
       console.error("Gagal sinkronisasi:", err.message);
     }
-  }, []);
+  }, [isLoggedIn]);
 
   const fetchMasterLoket = useCallback(async () => {
     try {

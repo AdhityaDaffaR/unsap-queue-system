@@ -81,6 +81,32 @@ export default function useDashboardAdmin() {
     fetchLoketMaster();
   }, [isAdminLoggedIn, token]);
 
+  useEffect(() => {
+    if (!isAdminLoggedIn || !loketInfo.kode || loketInfo.kode === "—") return;
+    const validateLoket = async () => {
+      try {
+        const resData = await api.get("/api/loket", token);
+        if (resData.success) {
+          const serverLoket = resData.data.find((l) => l.kode_loket === loketInfo.kode);
+          if (!serverLoket) {
+            setLoketInfo({ id: null, kode: "—", nama: "Meja Non-Aktif", status: "tutup", id_layanan: null });
+            sessionStorage.removeItem("loket_tugas_aktif");
+          } else if (serverLoket.id_staf_aktif !== null && serverLoket.id_staf_aktif !== adminProfile.id) {
+            setLoketInfo({ id: null, kode: "—", nama: "Meja Non-Aktif", status: "tutup", id_layanan: null });
+            sessionStorage.removeItem("loket_tugas_aktif");
+          } else if (serverLoket.status !== loketInfo.status) {
+            const updated = { id: serverLoket.id, kode: serverLoket.kode_loket, nama: serverLoket.nama_loket, id_layanan: serverLoket.id_layanan, status: serverLoket.status };
+            setLoketInfo(updated);
+            sessionStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
+          }
+        }
+      } catch (err) {
+        console.error("Gagal validasi loket:", err);
+      }
+    };
+    validateLoket();
+  }, [isAdminLoggedIn, token]);
+
   const handleNext = async () => {
     if (!isAdminLoggedIn || loketInfo.status === "tutup" || daftarSelanjutnya.length === 0) return;
     setIsCalling(true);

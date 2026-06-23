@@ -179,7 +179,8 @@ export default function LoginAdmin() {
 
           <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
             {listLoketTugas.map((loket) => {
-              const isDipakai = loket.id_staf_aktif !== null;
+              const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
+              const isDipakai = loket.id_staf_aktif !== null && loket.id_staf_aktif !== adminProfileData.id;
               return (
                 <button
                   key={loket.id}

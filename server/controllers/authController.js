@@ -95,6 +95,19 @@ export const loginMahasiswa = async (req, res) => {
       role: 'mahasiswa'
     });
 
+    const hariIni = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
+
+    const { data: tiketAktif } = await supabase
+      .from('antrean')
+      .select('id, nomor_display, status')
+      .eq('npm_mahasiswa', mhs.npm)
+      .eq('tanggal_antrean', hariIni)
+      .in('status', ['menunggu', 'dipanggil'])
+      .maybeSingle();
+
     return res.status(200).json({
       success: true,
       message: `Login berhasil. Selamat datang, ${mhs.nama_mahasiswa}! ✨`,
@@ -105,7 +118,8 @@ export const loginMahasiswa = async (req, res) => {
         nama_mahasiswa: mhs.nama_mahasiswa,
         prodi: mhs.prodi,
         angkatan: mhs.angkatan
-      }
+      },
+      tiket_aktif: tiketAktif || null
     });
 
   } catch (err) {

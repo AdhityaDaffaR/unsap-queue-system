@@ -49,6 +49,11 @@ export default function useLoginUser() {
         angkatan: resData.data.angkatan
       }));
 
+      if (resData.tiket_aktif) {
+        sessionStorage.setItem('nomorTiketAktif', resData.tiket_aktif.nomor_display);
+        sessionStorage.setItem('idAntreanAktif', resData.tiket_aktif.id);
+      }
+
       navigate('/'); 
 
     } catch (err) {

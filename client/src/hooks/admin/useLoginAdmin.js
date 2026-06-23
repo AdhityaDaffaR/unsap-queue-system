@@ -50,6 +50,7 @@ export default function useLoginAdmin() {
         throw new Error(resData.message || "Akses Ditolak!");
       }
 
+      sessionStorage.removeItem("loket_tugas_aktif");
       sessionStorage.setItem("tokenAdmin", resData.token);
       sessionStorage.setItem("adminProfileData", JSON.stringify({
         id: resData.data.id,

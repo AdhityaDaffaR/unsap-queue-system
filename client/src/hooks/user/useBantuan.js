@@ -25,9 +25,7 @@ export default function useBantuan() {
 
   // LOGIKA KELUAR AKUN SINKRON
   const handleLogout = () => {
-    sessionStorage.removeItem('isLoggedInUser');
-    sessionStorage.removeItem('userProfileData');
-    sessionStorage.removeItem('nomorTiketAktif');
+    ['tokenMahasiswa', 'isLoggedInUser', 'userProfileData', 'nomorTiketAktif', 'idAntreanAktif'].forEach((k) => sessionStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate('/');
   };
