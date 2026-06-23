@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion'; 
 import { LogIn, LogOut, Home, Layers, HelpCircle, Menu, X } from 'lucide-react';

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Monitor, Volume2, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Volume2 } from 'lucide-react';
 import useDisplayMonitor from '../../hooks/user/useDisplayMonitor';
 import UnsapLogo from '../../assets/logo-unsap.png';
 

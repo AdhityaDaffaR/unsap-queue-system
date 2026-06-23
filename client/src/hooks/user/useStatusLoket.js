@@ -3,26 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
 
-const REALTIME_CHANNEL = "realtime_sync";
+const getIsLoggedIn = () => sessionStorage.getItem("isLoggedInUser") === "true";
+const getProfile = () => {
+  const saved = sessionStorage.getItem("userProfileData");
+  return saved ? JSON.parse(saved) : { nama: "Guest Civitas", nim: "—" };
+};
 
 export default function useStatusLoket() {
   const navigate = useNavigate();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem("isLoggedInUser") === "true";
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn);
+  const [userProfile, setUserProfile] = useState(getProfile);
 
-  const [userProfile] = useState(() => {
-    const savedProfile = sessionStorage.getItem("userProfileData");
-    return savedProfile ? JSON.parse(savedProfile) : { nama: "Guest Civitas", nim: "—" };
-  });
+  useEffect(() => {
+    const sync = () => { setIsLoggedIn(getIsLoggedIn()); setUserProfile(getProfile()); };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
 
   const [masterLoket, setMasterLoket] = useState([
-    { id_layanan: 1, kode: "1A", kategori: "Keuangan", aktif: "—", sisa: 0, estimasi: 0, status: "buka", selanjutnya: [] },
-    { id_layanan: 1, kode: "1B", kategori: "Keuangan", aktif: "—", sisa: 0, estimasi: 0, status: "buka", selanjutnya: [] },
-    { id_layanan: 2, kode: "2", kategori: "Akademik", aktif: "—", sisa: 0, estimasi: 0, status: "buka", selanjutnya: [] },
+    { id_layanan: 1, kode: "1A", kategori: "Keuangan", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
+    { id_layanan: 1, kode: "1B", kategori: "Keuangan", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
+    { id_layanan: 2, kode: "2", kategori: "Akademik", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
     { id_layanan: 3, kode: "3", kategori: "Umum", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
     { id_layanan: 4, kode: "4", kategori: "Kemahasiswaan", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
   ]);
@@ -41,7 +45,7 @@ export default function useStatusLoket() {
     } catch (err) { console.error("Gagal memuat master loket:", err); }
   }, []);
 
-  useEffect(() => { fetchMasterLoket(); }, [fetchMasterLoket]);
+  useEffect(() => { fetchMasterLoket(); /* eslint-disable-line react-hooks/set-state-in-effect */ }, [fetchMasterLoket]);
 
   const fetchMonitorData = useCallback(async () => {
     try {
@@ -63,12 +67,15 @@ export default function useStatusLoket() {
   }, []);
 
   useEffect(() => {
-    fetchMonitorData();
+    fetchMonitorData(); // eslint-disable-line react-hooks/set-state-in-effect
     const channels = [
-      supabase.channel(`status_loket_${Date.now()}`)
+      supabase.channel("status_loket_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel(REALTIME_CHANNEL)
+      supabase.channel("status_loket_loket")
+        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, () => { fetchMasterLoket(); fetchMonitorData(); })
+        .subscribe(),
+      supabase.channel("realtime_sync")
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
         .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
         .subscribe(),
@@ -124,5 +131,5 @@ export default function useStatusLoket() {
       layanan.kategori.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  return { navigate, isLoggedIn, userProfile, handleLogout, searchQuery, setSearchQuery, daftarLoket: layananTersaring };
+  return { isLoggedIn, userProfile, handleLogout, searchQuery, setSearchQuery, daftarLoket: layananTersaring };
 }

@@ -58,7 +58,7 @@ export default function useLoginUser() {
     }
   };
 
-  const selectGoogleAccount = (emailNama) => {
+  const selectGoogleAccount = () => {
     setShowGoogleModal(false);
     setIsLoading(true);
     

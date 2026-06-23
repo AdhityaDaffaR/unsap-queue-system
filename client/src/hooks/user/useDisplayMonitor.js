@@ -2,13 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
 
-const REALTIME_CHANNEL = "realtime_sync";
-
 export default function useDisplayMonitor() {
   const [masterLoket, setMasterLoket] = useState([
-    { id_layanan: 1, kode: "1A", kategori: "Keuangan", aktif: "—", sisa: 0, status: "buka", selanjutnya: [] },
-    { id_layanan: 1, kode: "1B", kategori: "Keuangan", aktif: "—", sisa: 0, status: "buka", selanjutnya: [] },
-    { id_layanan: 2, kode: "2", kategori: "Akademik", aktif: "—", sisa: 0, status: "buka", selanjutnya: [] },
+    { id_layanan: 1, kode: "1A", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
+    { id_layanan: 1, kode: "1B", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
+    { id_layanan: 2, kode: "2", kategori: "Akademik", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
     { id_layanan: 3, kode: "3", kategori: "Umum", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
     { id_layanan: 4, kode: "4", kategori: "Kemahasiswaan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
   ]);
@@ -98,26 +96,27 @@ export default function useDisplayMonitor() {
     } catch (err) { console.error("Gagal memuat master loket:", err); }
   }, []);
 
-  useEffect(() => { fetchMasterLoket(); }, [fetchMasterLoket]);
+  useEffect(() => { fetchMasterLoket(); /* eslint-disable-line react-hooks/set-state-in-effect */ }, [fetchMasterLoket]);
 
   useEffect(() => {
     fetchMonitorData();
     const channels = [
-      supabase.channel(`display_${Date.now()}`)
+      supabase.channel("display_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel(REALTIME_CHANNEL)
-        .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
+      supabase.channel("display_loket")
+        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, () => { fetchMasterLoket(); fetchMonitorData(); })
+        .subscribe(),
+      supabase.channel("realtime_sync")
         .on("broadcast", { event: "panggil_ulang" }, (payload) => {
           playAnnouncementAudio(payload.payload.nomor_display, payload.payload.loket);
         })
+        .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
+        .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
         .subscribe(),
     ];
-    const interval = setInterval(fetchMonitorData, 3000);
     return () => {
       channels.forEach((c) => supabase.removeChannel(c));
-      clearInterval(interval);
     };
   }, [fetchMonitorData, fetchMasterLoket]);
 

@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
 
-const REALTIME_CHANNEL = "realtime_sync";
-
 export default function useDashboardAdmin() {
   const navigate = useNavigate();
   const token = sessionStorage.getItem("tokenAdmin");
@@ -28,6 +26,7 @@ export default function useDashboardAdmin() {
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLoketMasihBukaModal, setShowLoketMasihBukaModal] = useState(false);
   const [listLoketTugas, setListLoketTugas] = useState([]);
 
   const monitorParams = {
@@ -53,20 +52,21 @@ export default function useDashboardAdmin() {
 
   useEffect(() => {
     if (!monitorParams.isActive) return;
-    fetchMonitorData();
+    fetchMonitorData(); // eslint-disable-line react-hooks/set-state-in-effect
     const channels = [
-      supabase.channel(`admin_dashboard_${Date.now()}`)
+      supabase.channel("admin_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel(REALTIME_CHANNEL)
+      supabase.channel("admin_loket")
+        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, fetchMonitorData)
+        .subscribe(),
+      supabase.channel("realtime_sync")
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
         .on("broadcast", { event: "loket_berubah" }, fetchMonitorData)
         .subscribe(),
     ];
-    const interval = setInterval(fetchMonitorData, 3000);
     return () => {
       channels.forEach((c) => supabase.removeChannel(c));
-      clearInterval(interval);
     };
   }, [monitorParams.isActive, monitorParams.kode, monitorParams.idLayanan, fetchMonitorData]);
 
@@ -79,7 +79,7 @@ export default function useDashboardAdmin() {
       } catch (err) { console.error("Gagal memuat data loket:", err); }
     };
     fetchLoketMaster();
-  }, [isAdminLoggedIn]);
+  }, [isAdminLoggedIn, token]);
 
   const handleNext = async () => {
     if (!isAdminLoggedIn || loketInfo.status === "tutup" || daftarSelanjutnya.length === 0) return;
@@ -87,7 +87,6 @@ export default function useDashboardAdmin() {
     try {
       const resData = await api.patch("/api/antrean/panggil", { id_layanan: loketInfo.id_layanan, nomor_loket: loketInfo.kode }, token);
       if (!resData.success) throw new Error(resData.message || "Gagal memanggil antrean.");
-      await supabase.channel(REALTIME_CHANNEL).send({ type: "broadcast", event: "antrean_berubah", payload: {} });
       setTimeout(() => setIsCalling(false), 600);
     } catch (err) { alert("Kesalahan: " + err.message); setIsCalling(false); }
   };
@@ -96,9 +95,15 @@ export default function useDashboardAdmin() {
     if (!isAdminLoggedIn || loketInfo.status === "tutup" || nomorAktif === "—") return;
     setIsCalling(true);
     try {
-      await supabase.channel(REALTIME_CHANNEL).send({
-        type: "broadcast", event: "panggil_ulang",
-        payload: { nomor_display: nomorAktif, loket: loketInfo.kode },
+      const recallChannel = supabase.channel("realtime_sync");
+      recallChannel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          recallChannel.send({
+            type: "broadcast", event: "panggil_ulang",
+            payload: { nomor_display: nomorAktif, loket: loketInfo.kode },
+          });
+          setTimeout(() => supabase.removeChannel(recallChannel), 1000);
+        }
       });
     } catch (err) { alert("Gagal mengirim sinyal: " + err.message); }
     finally { setTimeout(() => setIsCalling(false), 600); }
@@ -122,7 +127,6 @@ export default function useDashboardAdmin() {
       if (!resData.success) throw new Error(resData.message || "Gagal memanggil nomor hold.");
       setNomorAktif(ticket.nomor_display);
       setDaftarDilewati((prev) => prev.filter((item) => item.id !== ticket.id));
-      await supabase.channel(REALTIME_CHANNEL).send({ type: "broadcast", event: "antrean_berubah", payload: {} });
     } catch (err) { alert("Kesalahan: " + err.message); }
     finally { setTimeout(() => setIsCalling(false), 600); }
   };
@@ -154,7 +158,13 @@ export default function useDashboardAdmin() {
     } catch (err) { alert("Kesalahan: " + err.message); }
   };
 
-  const triggerLogoutConfirm = () => setShowLogoutModal(true);
+  const triggerLogoutConfirm = () => {
+    if (loketInfo.status === "buka") {
+      setShowLoketMasihBukaModal(true);
+    } else {
+      setShowLogoutModal(true);
+    }
+  };
 
   const handleAdminLogout = () => {
     ["loket_tugas_aktif", "adminProfileData", "tokenAdmin"].forEach((k) => sessionStorage.removeItem(k));
@@ -168,6 +178,7 @@ export default function useDashboardAdmin() {
     triggerLogoutConfirm, handleAdminLogout, showSwitchModal, setShowSwitchModal,
     listLoketTugas, handleSwitchLoket, showConfirmModal, setShowConfirmModal,
     triggerStatusToggle, handleConfirmStatusToggle, showLogoutModal, setShowLogoutModal,
+    showLoketMasihBukaModal, setShowLoketMasihBukaModal,
     isAdminLoggedIn, navigate,
   };
 }

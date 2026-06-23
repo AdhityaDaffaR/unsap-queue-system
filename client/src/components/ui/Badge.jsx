@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function Badge({ variant = 'success', children, className = '' }) {
   const styles = {
     success: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',

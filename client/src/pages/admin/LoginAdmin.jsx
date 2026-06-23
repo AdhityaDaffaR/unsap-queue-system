@@ -1,4 +1,4 @@
-import React from "react";
+
 import {
   Eye,
   EyeOff,
@@ -32,6 +32,7 @@ export default function LoginAdmin() {
     listLoketTugas,
     handlePilihLoket,
     fetchError,
+    fetchLoketList,
     isAdminLoggedIn,
     navigate,
   } = useLoginAdmin();

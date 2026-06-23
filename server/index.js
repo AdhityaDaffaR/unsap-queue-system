@@ -8,6 +8,11 @@ import loketRoutes from './routes/loketRoutes.js';
 import { initBroadcast } from './config/broadcast.js';
 
 dotenv.config();
+
+process.on('unhandledRejection', (reason) => {
+  console.error('❌ Unhandled Rejection:', reason);
+});
+
 initBroadcast();
 
 const app = express();
@@ -26,6 +31,12 @@ app.use('/api/layanan', layananRoutes);
 app.use('/api/antrean', antreanRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/loket', loketRoutes);
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('❌ Unhandled Error:', err.stack || err.message || err);
+  res.status(500).json({ success: false, message: 'Terjadi kesalahan internal server.' });
+});
 
 app.listen(PORT, () => {
   console.log(`=========================================`);

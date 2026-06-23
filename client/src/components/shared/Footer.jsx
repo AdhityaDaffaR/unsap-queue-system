@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function Footer() {
   return (
     <footer className="w-full text-center py-4 border-t border-border-default bg-bg-surface mt-auto">

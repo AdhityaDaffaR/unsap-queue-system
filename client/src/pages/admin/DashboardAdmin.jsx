@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Volume2,
   ChevronRight,
@@ -43,6 +43,8 @@ export default function DashboardAdmin() {
     handleConfirmStatusToggle,
     showLogoutModal,
     setShowLogoutModal,
+    showLoketMasihBukaModal,
+    setShowLoketMasihBukaModal,
     isAdminLoggedIn,
     navigate,
   } = useDashboardAdmin();
@@ -404,6 +406,36 @@ export default function DashboardAdmin() {
               className={`py-2 text-xs font-black text-white rounded-xl border-0 ${!isAdminTutup ? "bg-danger hover:bg-danger-hover" : "bg-success hover:bg-success-hover"}`}
             >
               Ya, Ubah Status
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showLoketMasihBukaModal}
+        onClose={() => setShowLoketMasihBukaModal(false)}
+        title="Loket Masih Aktif"
+        showCloseButton={true}
+      >
+        <div className="space-y-4 py-1 text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mx-auto">
+            <Power size={22} />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-text-main">
+              Tutup Loket Terlebih Dahulu
+            </p>
+            <p className="text-[11px] text-text-muted px-4 leading-normal">
+              Status loket <span className="font-black text-brand-primary">{loketInfo.nama}</span> masih <span className="font-black text-success">BUKA</span>. Silakan tutup loket terlebih dahulu sebelum keluar dari sistem.
+            </p>
+          </div>
+          <div className="w-full pt-2">
+            <Button
+              variant="primary"
+              onClick={() => setShowLoketMasihBukaModal(false)}
+              className="py-2 text-xs font-bold"
+            >
+              Mengerti
             </Button>
           </div>
         </div>

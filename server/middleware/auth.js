@@ -16,7 +16,10 @@ export const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ success: false, message: 'Sesi Anda telah kadaluarsa. Silakan login ulang.' });
+      const message = err.name === 'TokenExpiredError'
+        ? 'Sesi Anda telah kadaluarsa. Silakan login ulang.'
+        : 'Token tidak valid. Silakan login ulang.';
+      return res.status(403).json({ success: false, message });
     }
     req.user = decoded;
     next();

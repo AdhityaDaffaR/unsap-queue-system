@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function Input({ icon: Icon, className = '', ...props }) {
   return (
     <div className="relative flex items-center w-full">

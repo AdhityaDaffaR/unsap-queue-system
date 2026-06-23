@@ -3,17 +3,43 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
 
-const REALTIME_CHANNEL = "realtime_sync";
+const getToken = () => sessionStorage.getItem("tokenMahasiswa");
+const getIsLoggedIn = () => sessionStorage.getItem("isLoggedInUser") === "true" && !!getToken();
+
+const formatNamaMahasiswa = (namaLengkap) => {
+  if (!namaLengkap) return "Guest Civitas";
+  const kata = namaLengkap.trim().split(/\s+/);
+  if (kata.length <= 2) return namaLengkap;
+  const duaKataPertama = kata.slice(0, 2).join(" ");
+  const sisaInisial = kata.slice(2).map((k) => `${k.charAt(0).toUpperCase()}.`).join(" ");
+  return `${duaKataPertama} ${sisaInisial}`;
+};
+
+const getProfile = () => {
+  const saved = sessionStorage.getItem("userProfileData");
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
+  }
+  return { nama: "Guest Civitas", nim: "—" };
+};
 
 export default function useHomeUser() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const getToken = () => sessionStorage.getItem("tokenMahasiswa");
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn);
+  const [userProfile, setUserProfile] = useState(getProfile);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem("isLoggedInUser") === "true" && !!getToken();
-  });
+  useEffect(() => {
+    const sync = () => {
+      setIsLoggedIn(getIsLoggedIn());
+      setUserProfile(getProfile());
+    };
+    window.addEventListener("storage", sync);
+    const id = setInterval(sync, 1000);
+    return () => { window.removeEventListener("storage", sync); clearInterval(id); };
+  }, []);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthWarningModal, setShowAuthWarningModal] = useState(false);
@@ -25,28 +51,10 @@ export default function useHomeUser() {
     return sessionStorage.getItem("nomorTiketAktif") || "";
   });
 
-  const formatNamaMahasiswa = (namaLengkap) => {
-    if (!namaLengkap) return "Guest Civitas";
-    const kata = namaLengkap.trim().split(/\s+/);
-    if (kata.length <= 2) return namaLengkap;
-    const duaKataPertama = kata.slice(0, 2).join(" ");
-    const sisaInisial = kata.slice(2).map((k) => `${k.charAt(0).toUpperCase()}.`).join(" ");
-    return `${duaKataPertama} ${sisaInisial}`;
-  };
-
-  const [userProfile] = useState(() => {
-    const savedProfile = sessionStorage.getItem("userProfileData");
-    if (savedProfile) {
-      const parsed = JSON.parse(savedProfile);
-      return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
-    }
-    return { nama: "Guest Civitas", nim: "—" };
-  });
-
   const [masterLoket, setMasterLoket] = useState([
-    { id_layanan: 1, kode: "1A", nama: "Loket 1A - Pembayaran Yayasan", kategori: "Keuangan", aktif: "—", sisa: 0, status: "buka", selanjutnya: [] },
-    { id_layanan: 1, kode: "1B", nama: "Loket 1B - Pembayaran Yayasan", kategori: "Keuangan", aktif: "—", sisa: 0, status: "buka", selanjutnya: [] },
-    { id_layanan: 2, kode: "2", nama: "Loket 2 - BAAK (Akademik)", kategori: "Akademik", aktif: "—", sisa: 0, status: "buka", selanjutnya: [] },
+    { id_layanan: 1, kode: "1A", nama: "Loket 1A - Pembayaran Yayasan", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
+    { id_layanan: 1, kode: "1B", nama: "Loket 1B - Pembayaran Yayasan", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
+    { id_layanan: 2, kode: "2", nama: "Loket 2 - BAAK (Akademik)", kategori: "Akademik", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
     { id_layanan: 3, kode: "3", nama: "Loket 3 - BAU (Keuangan)", kategori: "Umum", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
     { id_layanan: 4, kode: "4", nama: "Loket 4 - Beasiswa & Kemahasiswaan", kategori: "Kemahasiswaan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
   ]);
@@ -92,31 +100,32 @@ export default function useHomeUser() {
   }, []);
 
   useEffect(() => {
-    fetchMasterLoket();
+    fetchMasterLoket(); // eslint-disable-line react-hooks/set-state-in-effect
   }, [fetchMasterLoket]);
 
   useEffect(() => {
-    fetchMonitorData();
+    fetchMonitorData(); // eslint-disable-line react-hooks/set-state-in-effect
     const channels = [
-      supabase.channel(`${REALTIME_CHANNEL}_home_${Date.now()}`)
+      supabase.channel("home_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel(REALTIME_CHANNEL)
+      supabase.channel("home_loket")
+        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, () => { fetchMasterLoket(); fetchMonitorData(); })
+        .subscribe(),
+      supabase.channel("realtime_sync")
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
         .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
         .subscribe(),
     ];
-    const interval = setInterval(fetchMonitorData, 3000);
     return () => {
       channels.forEach((c) => supabase.removeChannel(c));
-      clearInterval(interval);
     };
   }, [fetchMonitorData, fetchMasterLoket]);
 
   useEffect(() => {
     if (location.state && location.state.autoSelectLoketId) {
       const target = masterLoket.find((l) => l.id === location.state.autoSelectLoketId);
-      if (target) setSelectedKategori(target.kategori);
+      if (target) setSelectedKategori(target.kategori); // eslint-disable-line react-hooks/set-state-in-effect
       navigate("/", { replace: true, state: {} });
     }
   }, [location.state, navigate, masterLoket]);
@@ -178,8 +187,7 @@ export default function useHomeUser() {
       setShowSuccessModal(true);
       fetchMonitorData();
     } catch (err) {
-      if (err.message.includes("403") || err.message.includes("Akses")) setShowAuthWarningModal(true);
-      else alert("Kesalahan: " + err.message);
+      alert("Kesalahan: " + err.message);
     }
   };
 

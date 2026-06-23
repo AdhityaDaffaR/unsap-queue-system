@@ -37,6 +37,21 @@ export const ambilAntreanBaru = async (req, res) => {
 
     const hariIni = getTanggalHariIniWIB();
 
+    const { data: tiketAktif } = await supabase
+      .from("antrean")
+      .select("id, nomor_display, status")
+      .eq("npm_mahasiswa", npm_mahasiswa)
+      .eq("tanggal_antrean", hariIni)
+      .in("status", ["menunggu", "dipanggil"])
+      .maybeSingle();
+
+    if (tiketAktif) {
+      return res.status(409).json({
+        success: false,
+        message: `Anda masih memiliki tiket aktif: ${tiketAktif.nomor_display} (${tiketAktif.status}). Selesaikan atau batalkan terlebih dahulu.`
+      });
+    }
+
     const { data: antreanTerakhir } = await supabase
       .from("antrean")
       .select("nomor_urut")
@@ -57,14 +72,14 @@ export const ambilAntreanBaru = async (req, res) => {
         id_layanan,
         status: "menunggu",
         npm_mahasiswa,
-        tanggal_antrean: hariIni 
+        tanggal_antrean: hariIni
       }])
       .select()
       .single();
 
     if (error) throw error;
 
-    broadcastUpdate('antrean_berubah');
+    await broadcastUpdate('antrean_berubah');
 
     return res.status(201).json({ success: true, data });
   } catch (err) {
@@ -100,7 +115,7 @@ export const batalAntrean = async (req, res) => {
       .select();
 
     if (error) throw error;
-    broadcastUpdate('antrean_berubah');
+    await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -134,7 +149,7 @@ export const panggilAntrean = async (req, res) => {
       .maybeSingle();
 
     if (!next) {
-      broadcastUpdate('antrean_berubah');
+      await broadcastUpdate('antrean_berubah');
       return res.status(200).json({ success: true, message: "Antrean kosong" });
     }
 
@@ -142,11 +157,16 @@ export const panggilAntrean = async (req, res) => {
       .from("antrean")
       .update({ status: "dipanggil", nomor_loket })
       .eq("id", next.id)
+      .eq("status", "menunggu")
       .select();
 
     if (errUpdate) throw errUpdate;
 
-    broadcastUpdate('antrean_berubah');
+    if (!updated || updated.length === 0) {
+      return res.status(409).json({ success: false, message: "Antrean telah diambil loket lain, coba lagi." });
+    }
+
+    await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: updated[0] });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -167,7 +187,7 @@ export const lewatiAntrean = async (req, res) => {
       .select();
 
     if (error) throw error;
-    broadcastUpdate('antrean_berubah');
+    await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -190,10 +210,14 @@ export const panggilAntreanLewati = async (req, res) => {
       .from("antrean")
       .update({ status: "dipanggil", nomor_loket })
       .eq("id", id_antrean)
+      .eq("status", "dilewati")
       .select();
 
     if (error) throw error;
-    broadcastUpdate('antrean_berubah');
+    if (!data || data.length === 0) {
+      return res.status(409).json({ success: false, message: "Antrean sudah dipanggil loket lain, coba lagi." });
+    }
+    await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -208,21 +232,23 @@ export const getAntreanMonitor = async (req, res) => {
   try {
     const hariIni = getTanggalHariIniWIB();
 
+    const fields = "id, nomor_display, nomor_urut, status, id_layanan, nomor_loket, npm_mahasiswa, tanggal_antrean, layanan(nama_layanan)";
+
     const [dipanggil, menunggu, dilewati] = await Promise.all([
       supabase
         .from("antrean")
-        .select("*, layanan(nama_layanan)")
+        .select(fields)
         .eq("status", "dipanggil")
         .eq("tanggal_antrean", hariIni),
       supabase
         .from("antrean")
-        .select("*, layanan(nama_layanan)")
+        .select(fields)
         .eq("status", "menunggu")
         .eq("tanggal_antrean", hariIni)
         .order("nomor_urut", { ascending: true }),
       supabase
         .from("antrean")
-        .select("*, layanan(nama_layanan)")
+        .select(fields)
         .eq("status", "dilewati")
         .eq("tanggal_antrean", hariIni)
         .order("nomor_urut", { ascending: true }),

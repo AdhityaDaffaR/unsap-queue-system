@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function Button({ children, onClick, variant = 'primary', type = 'button', disabled = false, className = '' }) {
   // Transisi hanya diterapkan pada opacity dan shadow, BUKAN pada warna global
   const baseStyle = "w-full h-10 px-4 rounded-md text-sm font-medium flex items-center justify-center gap-2 select-none transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:pointer-events-none";

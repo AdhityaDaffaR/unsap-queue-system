@@ -1,30 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const getIsLoggedIn = () => sessionStorage.getItem('isLoggedInUser') === 'true';
+const getProfile = () => {
+  const saved = sessionStorage.getItem('userProfileData');
+  return saved ? JSON.parse(saved) : { nama: "Guest Civitas", nim: "—" };
+};
+
 export default function useBantuan() {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn);
+  const [userProfile, setUserProfile] = useState(getProfile);
 
-  // FIX SINKRONISASI AUTENTIKASI: Membaca status login riil dari session storage browser
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem('isLoggedInUser') === 'true';
-  });
-
-  // Membaca profil data akun yang sedang aktif digunakan
-  const [userProfile, setUserProfile] = useState(() => {
-    const savedProfile = sessionStorage.getItem('userProfileData');
-    return savedProfile ? JSON.parse(savedProfile) : { nama: "Guest Civitas", nim: "—" };
-  });
-
-  // Sinkronisasi dinamis real-time jika ada perubahan status login dari halaman lain
   useEffect(() => {
-    const syncAuth = () => {
-      setIsLoggedIn(sessionStorage.getItem('isLoggedInUser') === 'true');
-      const savedProfile = sessionStorage.getItem('userProfileData');
-      if (savedProfile) setUserProfile(JSON.parse(savedProfile));
-    };
-    const interval = setInterval(syncAuth, 500);
-    return () => clearInterval(interval);
+    const sync = () => { setIsLoggedIn(getIsLoggedIn()); setUserProfile(getProfile()); };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
 
   const toggleFAQ = (index) => {
