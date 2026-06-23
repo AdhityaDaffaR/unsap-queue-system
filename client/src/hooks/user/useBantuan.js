@@ -1,10 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const formatNamaMahasiswa = (namaLengkap) => {
+  if (!namaLengkap) return "Guest Civitas";
+  const kata = namaLengkap.trim().split(/\s+/);
+  if (kata.length <= 2) return namaLengkap;
+  const duaKataPertama = kata.slice(0, 2).join(" ");
+  const sisaInisial = kata.slice(2).map((k) => `${k.charAt(0).toUpperCase()}.`).join(" ");
+  return `${duaKataPertama} ${sisaInisial}`;
+};
+
 const getIsLoggedIn = () => sessionStorage.getItem('isLoggedInUser') === 'true';
 const getProfile = () => {
   const saved = sessionStorage.getItem('userProfileData');
-  return saved ? JSON.parse(saved) : { nama: "Guest Civitas", nim: "—" };
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
+  }
+  return { nama: "Guest Civitas", nim: "—" };
 };
 
 export default function useBantuan() {

@@ -1,15 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
+import { useLoket } from "../../context/LoketContext";
 
 export default function useDisplayMonitor() {
-  const [masterLoket, setMasterLoket] = useState([
-    { id_layanan: 1, kode: "1A", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 1, kode: "1B", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 2, kode: "2", kategori: "Akademik", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 3, kode: "3", kategori: "Umum", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 4, kode: "4", kategori: "Kemahasiswaan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-  ]);
+  const { masterLoket, setMasterLoket } = useLoket();
 
   const previousNomorRef = useRef({ "1A": "—", "1B": "—", 2: "—", 3: "—", 4: "—" });
   const audioReadyRef = useRef(false);
@@ -66,7 +61,7 @@ export default function useDisplayMonitor() {
           prev.map((loket) => {
             const dipanggil = sedangDipanggil.find((a) => a.nomor_loket === loket.kode);
             let menunggu = [];
-            if (["1A", "2", "3", "4"].includes(loket.kode)) {
+            if (["1A", "1B", "2", "3", "4"].includes(loket.kode)) {
               menunggu = sedangMenunggu.filter((a) => a.id_layanan === loket.id_layanan).map((a) => a.nomor_display);
             }
             const nomorBaru = dipanggil ? dipanggil.nomor_display : "—";
@@ -82,51 +77,33 @@ export default function useDisplayMonitor() {
     } catch (err) { console.error("Gagal menarik data monitor:", err.message); }
   }, []);
 
-  const fetchMasterLoket = useCallback(async () => {
-    try {
-      const resData = await api.get("/api/loket");
-      if (resData.success) {
-        setMasterLoket((prev) =>
-          prev.map((lokal) => {
-            const fromDB = resData.data.find((db) => db.kode_loket === lokal.kode);
-            return fromDB ? { ...lokal, status: fromDB.status } : lokal;
-          })
-        );
-      }
-    } catch (err) { console.error("Gagal memuat master loket:", err); }
-  }, []);
-
-  useEffect(() => { fetchMasterLoket(); /* eslint-disable-line react-hooks/set-state-in-effect */ }, [fetchMasterLoket]);
-
   useEffect(() => {
     fetchMonitorData();
     const channels = [
       supabase.channel("display_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel("display_loket")
-        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, () => { fetchMasterLoket(); fetchMonitorData(); })
-        .subscribe(),
       supabase.channel("realtime_sync")
         .on("broadcast", { event: "panggil_ulang" }, (payload) => {
           playAnnouncementAudio(payload.payload.nomor_display, payload.payload.loket);
         })
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
         .subscribe(),
     ];
     return () => {
       channels.forEach((c) => supabase.removeChannel(c));
     };
-  }, [fetchMonitorData, fetchMasterLoket]);
+  }, [fetchMonitorData]);
 
   const layananMonitorList = [
     {
       kategori: "Keuangan", judul: "KEUANGAN", subLayanan: "Yayasan", kodeDisplay: "LOKET 1A / 1B",
       status: masterLoket.find((l) => l.kode === "1A")?.status === "buka" || masterLoket.find((l) => l.kode === "1B")?.status === "buka" ? "Buka" : "Tutup",
       konterFisikAktif: masterLoket.find((l) => l.kategori === "Keuangan" && l.aktif !== "—" && l.status === "buka")?.kode || "1A",
-      aktifDisplay: masterLoket.find((l) => l.kode === "1A")?.aktif || "—",
-      selanjutnyaList: [...(masterLoket.find((l) => l.kode === "1A")?.selanjutnya || []), ...(masterLoket.find((l) => l.kode === "1B")?.selanjutnya || [])].sort(),
+      aktifDisplay: masterLoket.find((l) => l.kode === "1A")?.aktif !== "—"
+        ? masterLoket.find((l) => l.kode === "1A")?.aktif
+        : masterLoket.find((l) => l.kode === "1B")?.aktif || "—",
+      selanjutnyaList: masterLoket.find((l) => l.kode === "1A")?.selanjutnya || [],
     },
     {
       kategori: "Akademik", judul: "AKADEMIK", subLayanan: "BAAK", kodeDisplay: "LOKET 2",

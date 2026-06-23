@@ -2,11 +2,25 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
+import { useLoket } from "../../context/LoketContext";
+
+const formatNamaMahasiswa = (namaLengkap) => {
+  if (!namaLengkap) return "Guest Civitas";
+  const kata = namaLengkap.trim().split(/\s+/);
+  if (kata.length <= 2) return namaLengkap;
+  const duaKataPertama = kata.slice(0, 2).join(" ");
+  const sisaInisial = kata.slice(2).map((k) => `${k.charAt(0).toUpperCase()}.`).join(" ");
+  return `${duaKataPertama} ${sisaInisial}`;
+};
 
 const getIsLoggedIn = () => sessionStorage.getItem("isLoggedInUser") === "true";
 const getProfile = () => {
   const saved = sessionStorage.getItem("userProfileData");
-  return saved ? JSON.parse(saved) : { nama: "Guest Civitas", nim: "—" };
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
+  }
+  return { nama: "Guest Civitas", nim: "—" };
 };
 
 export default function useStatusLoket() {
@@ -23,29 +37,7 @@ export default function useStatusLoket() {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [masterLoket, setMasterLoket] = useState([
-    { id_layanan: 1, kode: "1A", kategori: "Keuangan", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 1, kode: "1B", kategori: "Keuangan", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 2, kode: "2", kategori: "Akademik", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 3, kode: "3", kategori: "Umum", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 4, kode: "4", kategori: "Kemahasiswaan", aktif: "—", sisa: 0, estimasi: 0, status: "tutup", selanjutnya: [] },
-  ]);
-
-  const fetchMasterLoket = useCallback(async () => {
-    try {
-      const resData = await api.get("/api/loket");
-      if (resData.success) {
-        setMasterLoket((prev) =>
-          prev.map((lokal) => {
-            const fromDB = resData.data.find((db) => db.kode_loket === lokal.kode);
-            return fromDB ? { ...lokal, status: fromDB.status } : lokal;
-          })
-        );
-      }
-    } catch (err) { console.error("Gagal memuat master loket:", err); }
-  }, []);
-
-  useEffect(() => { fetchMasterLoket(); /* eslint-disable-line react-hooks/set-state-in-effect */ }, [fetchMasterLoket]);
+  const { masterLoket, setMasterLoket } = useLoket();
 
   const fetchMonitorData = useCallback(async () => {
     try {
@@ -56,10 +48,10 @@ export default function useStatusLoket() {
           prev.map((loket) => {
             const dipanggil = sedangDipanggil.find((a) => a.nomor_loket === loket.kode);
             let menunggu = [];
-            if (["1A", "2", "3", "4"].includes(loket.kode)) {
+            if (["1A", "1B", "2", "3", "4"].includes(loket.kode)) {
               menunggu = sedangMenunggu.filter((a) => a.id_layanan === loket.id_layanan).map((a) => a.nomor_display);
             }
-            return { ...loket, aktif: dipanggil ? dipanggil.nomor_display : "—", selanjutnya: menunggu, sisa: menunggu.length, estimasi: menunggu.length * 3 };
+            return { ...loket, aktif: dipanggil ? dipanggil.nomor_display : "—", selanjutnya: menunggu, sisa: menunggu.length, estimasi: Math.ceil(menunggu.length * (loket.estimasi_waktu || 3)) };
           })
         );
       }
@@ -72,16 +64,12 @@ export default function useStatusLoket() {
       supabase.channel("status_loket_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel("status_loket_loket")
-        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, () => { fetchMasterLoket(); fetchMonitorData(); })
-        .subscribe(),
       supabase.channel("realtime_sync")
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
         .subscribe(),
     ];
     return () => channels.forEach((c) => supabase.removeChannel(c));
-  }, [fetchMonitorData, fetchMasterLoket]);
+  }, [fetchMonitorData]);
 
   const handleLogout = () => {
     ["tokenMahasiswa", "isLoggedInUser", "userProfileData", "nomorTiketAktif", "idAntreanAktif"].forEach((k) => sessionStorage.removeItem(k));
@@ -93,13 +81,15 @@ export default function useStatusLoket() {
     {
       id: 1, kategori: "Keuangan", judulTampilan: "KEUANGAN", subTeks: "Yayasan", kodeDisplay: "LOKET 1A / 1B",
       status: masterLoket.find((l) => l.kode === "1A")?.status === "buka" || masterLoket.find((l) => l.kode === "1B")?.status === "buka" ? "Buka" : "Tutup",
-      sisaAntrean: (masterLoket.find((l) => l.kode === "1A")?.sisa || 0) + (masterLoket.find((l) => l.kode === "1B")?.sisa || 0),
-      estimasi: (masterLoket.find((l) => l.kode === "1A")?.estimasi || 0) + (masterLoket.find((l) => l.kode === "1B")?.estimasi || 0),
-      nomorAktif: masterLoket.find((l) => l.kode === "1A")?.aktif || "—",
+      sisaAntrean: masterLoket.find((l) => l.kode === "1A")?.sisa || 0,
+      estimasi: masterLoket.find((l) => l.kode === "1A")?.estimasi || 0,
+      nomorAktif: masterLoket.find((l) => l.kode === "1A")?.aktif !== "—"
+        ? masterLoket.find((l) => l.kode === "1A")?.aktif
+        : masterLoket.find((l) => l.kode === "1B")?.aktif || "—",
       konterFisikAktif: masterLoket.find((l) => l.kategori === "Keuangan" && l.aktif !== "—" && l.status === "buka")?.kode || null,
     },
     {
-      id: 3, kategori: "Akademik", judulTampilan: "AKADEMIK", subTeks: "BAAK", kodeDisplay: "LOKET 2",
+      id: 2, kategori: "Akademik", judulTampilan: "AKADEMIK", subTeks: "BAAK", kodeDisplay: "LOKET 2",
       status: masterLoket.find((l) => l.kode === "2")?.status === "buka" ? "Buka" : "Tutup",
       sisaAntrean: masterLoket.find((l) => l.kode === "2")?.sisa || 0,
       estimasi: masterLoket.find((l) => l.kode === "2")?.estimasi || 0,
@@ -107,7 +97,7 @@ export default function useStatusLoket() {
       konterFisikAktif: "2",
     },
     {
-      id: 4, kategori: "Umum", judulTampilan: "UMUM", subTeks: "BAU", kodeDisplay: "LOKET 3",
+      id: 3, kategori: "Umum", judulTampilan: "UMUM", subTeks: "BAU", kodeDisplay: "LOKET 3",
       status: masterLoket.find((l) => l.kode === "3")?.status === "buka" ? "Buka" : "Tutup",
       sisaAntrean: masterLoket.find((l) => l.kode === "3")?.sisa || 0,
       estimasi: masterLoket.find((l) => l.kode === "3")?.estimasi || 0,
@@ -115,7 +105,7 @@ export default function useStatusLoket() {
       konterFisikAktif: "3",
     },
     {
-      id: 5, kategori: "Kemahasiswaan", judulTampilan: "KEMAHASISWAAN", subTeks: "Beasiswa & Kemahasiswaan", kodeDisplay: "LOKET 4",
+      id: 4, kategori: "Kemahasiswaan", judulTampilan: "KEMAHASISWAAN", subTeks: "Beasiswa & Kemahasiswaan", kodeDisplay: "LOKET 4",
       status: masterLoket.find((l) => l.kode === "4")?.status === "buka" ? "Buka" : "Tutup",
       sisaAntrean: masterLoket.find((l) => l.kode === "4")?.sisa || 0,
       estimasi: masterLoket.find((l) => l.kode === "4")?.estimasi || 0,

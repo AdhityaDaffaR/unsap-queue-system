@@ -51,7 +51,7 @@ export default function HomeUser() {
   const isMonitorUtamaTutup = layananAktif.status === "Tutup";
 
   const konterFisikPemanggil = masterLoket?.find(
-    (l) => l.aktif === layananAktif.aktifDisplay && l.status === "Buka",
+    (l) => l.aktif === layananAktif.aktifDisplay && l.status === "buka",
   );
 
   const isGilirankuDipanggil =

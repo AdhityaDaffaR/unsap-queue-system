@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
+import { useLoket } from "../../context/LoketContext";
 
 const getToken = () => sessionStorage.getItem("tokenMahasiswa");
 const getIsLoggedIn = () => sessionStorage.getItem("isLoggedInUser") === "true" && !!getToken();
@@ -37,8 +38,7 @@ export default function useHomeUser() {
       setUserProfile(getProfile());
     };
     window.addEventListener("storage", sync);
-    const id = setInterval(sync, 1000);
-    return () => { window.removeEventListener("storage", sync); clearInterval(id); };
+    return () => { window.removeEventListener("storage", sync); };
   }, []);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,13 +51,7 @@ export default function useHomeUser() {
     return sessionStorage.getItem("nomorTiketAktif") || "";
   });
 
-  const [masterLoket, setMasterLoket] = useState([
-    { id_layanan: 1, kode: "1A", nama: "Loket 1A - Pembayaran Yayasan", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 1, kode: "1B", nama: "Loket 1B - Pembayaran Yayasan", kategori: "Keuangan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 2, kode: "2", nama: "Loket 2 - BAAK (Akademik)", kategori: "Akademik", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 3, kode: "3", nama: "Loket 3 - BAU (Keuangan)", kategori: "Umum", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-    { id_layanan: 4, kode: "4", nama: "Loket 4 - Beasiswa & Kemahasiswaan", kategori: "Kemahasiswaan", aktif: "—", sisa: 0, status: "tutup", selanjutnya: [] },
-  ]);
+  const { masterLoket, setMasterLoket } = useLoket();
 
   const [selectedKategori, setSelectedKategori] = useState("Keuangan");
 
@@ -70,7 +64,7 @@ export default function useHomeUser() {
           prev.map((loket) => {
             const dipanggil = sedangDipanggil.find((a) => a.nomor_loket === loket.kode);
             let menunggu = [];
-            if (["1A", "2", "3", "4"].includes(loket.kode)) {
+            if (["1A", "1B", "2", "3", "4"].includes(loket.kode)) {
               menunggu = sedangMenunggu.filter((a) => a.id_layanan === loket.id_layanan).map((a) => a.nomor_display);
             }
             return { ...loket, aktif: dipanggil ? dipanggil.nomor_display : "—", selanjutnya: menunggu, sisa: menunggu.length };
@@ -98,49 +92,24 @@ export default function useHomeUser() {
     }
   }, [isLoggedIn]);
 
-  const fetchMasterLoket = useCallback(async () => {
-    try {
-      const resData = await api.get("/api/loket");
-      if (resData.success) {
-        const loketDB = resData.data;
-        setMasterLoket((prev) =>
-          prev.map((lokal) => {
-            const fromDB = loketDB.find((db) => db.kode_loket === lokal.kode);
-            return fromDB ? { ...lokal, status: fromDB.status } : lokal;
-          })
-        );
-      }
-    } catch (err) {
-      console.error("Gagal memuat master loket:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchMasterLoket(); // eslint-disable-line react-hooks/set-state-in-effect
-  }, [fetchMasterLoket]);
-
   useEffect(() => {
     fetchMonitorData(); // eslint-disable-line react-hooks/set-state-in-effect
     const channels = [
       supabase.channel("home_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel("home_loket")
-        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, () => { fetchMasterLoket(); fetchMonitorData(); })
-        .subscribe(),
       supabase.channel("realtime_sync")
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .on("broadcast", { event: "loket_berubah" }, () => { fetchMasterLoket(); fetchMonitorData(); })
         .subscribe(),
     ];
     return () => {
       channels.forEach((c) => supabase.removeChannel(c));
     };
-  }, [fetchMonitorData, fetchMasterLoket]);
+  }, [fetchMonitorData]);
 
   useEffect(() => {
     if (location.state && location.state.autoSelectLoketId) {
-      const target = masterLoket.find((l) => l.id === location.state.autoSelectLoketId);
+      const target = masterLoket.find((l) => l.id_layanan === location.state.autoSelectLoketId);
       if (target) setSelectedKategori(target.kategori); // eslint-disable-line react-hooks/set-state-in-effect
       navigate("/", { replace: true, state: {} });
     }
@@ -150,9 +119,11 @@ export default function useHomeUser() {
     {
       kategori: "Keuangan", judulTampilan: "KEUANGAN", kodeDisplay: "LOKET 1A / 1B", subTeks: "Yayasan",
       status: masterLoket.find((l) => l.kode === "1A")?.status === "buka" || masterLoket.find((l) => l.kode === "1B")?.status === "buka" ? "Buka" : "Tutup",
-      sisa: (masterLoket.find((l) => l.kode === "1A")?.sisa || 0) + (masterLoket.find((l) => l.kode === "1B")?.sisa || 0),
-      aktifDisplay: masterLoket.find((l) => l.kode === "1A")?.aktif || "—",
-      selanjutnyaList: [...(masterLoket.find((l) => l.kode === "1A")?.selanjutnya || []), ...(masterLoket.find((l) => l.kode === "1B")?.selanjutnya || [])].sort(),
+      sisa: masterLoket.find((l) => l.kode === "1A")?.sisa || 0,
+      aktifDisplay: masterLoket.find((l) => l.kode === "1A")?.aktif !== "—"
+        ? masterLoket.find((l) => l.kode === "1A")?.aktif
+        : masterLoket.find((l) => l.kode === "1B")?.aktif || "—",
+      selanjutnyaList: masterLoket.find((l) => l.kode === "1A")?.selanjutnya || [],
     },
     {
       kategori: "Akademik", judulTampilan: "AKADEMIK", kodeDisplay: "LOKET 2", subTeks: "BAAK",
