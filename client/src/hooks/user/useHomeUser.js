@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
 import { useLoket } from "../../context/LoketContext";
 
@@ -51,61 +50,9 @@ export default function useHomeUser() {
     return sessionStorage.getItem("nomorTiketAktif") || "";
   });
 
-  const { masterLoket, setMasterLoket } = useLoket();
+  const { masterLoket, layananList, refreshMonitorData } = useLoket();
 
   const [selectedKategori, setSelectedKategori] = useState("Keuangan");
-
-  const fetchMonitorData = useCallback(async () => {
-    try {
-      const resData = await api.get("/api/antrean/monitor");
-      if (resData.success) {
-        const { sedangDipanggil, sedangMenunggu } = resData.data;
-        setMasterLoket((prev) =>
-          prev.map((loket) => {
-            const dipanggil = sedangDipanggil.find((a) => a.nomor_loket === loket.kode);
-            let menunggu = [];
-            if (["1A", "1B", "2", "3", "4"].includes(loket.kode)) {
-              menunggu = sedangMenunggu.filter((a) => a.id_layanan === loket.id_layanan).map((a) => a.nomor_display);
-            }
-            return { ...loket, aktif: dipanggil ? dipanggil.nomor_display : "—", selanjutnya: menunggu, sisa: menunggu.length };
-          })
-        );
-        if (isLoggedIn) {
-          const storedProfile = sessionStorage.getItem("userProfileData");
-          if (storedProfile) {
-            const npm = JSON.parse(storedProfile).npm;
-            const semuaTiket = [...sedangDipanggil, ...sedangMenunggu];
-            const tiketSaya = semuaTiket.find((t) => t.npm_mahasiswa === npm);
-            if (tiketSaya) {
-              const tiketAktif = sessionStorage.getItem("nomorTiketAktif");
-              if (!tiketAktif || tiketAktif !== tiketSaya.nomor_display) {
-                setNomorTiketBaru(tiketSaya.nomor_display);
-                sessionStorage.setItem("nomorTiketAktif", tiketSaya.nomor_display);
-                sessionStorage.setItem("idAntreanAktif", tiketSaya.id);
-              }
-            }
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Gagal sinkronisasi:", err.message);
-    }
-  }, [isLoggedIn]);
-
-  useEffect(() => {
-    fetchMonitorData(); // eslint-disable-line react-hooks/set-state-in-effect
-    const channels = [
-      supabase.channel("home_antrean")
-        .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
-        .subscribe(),
-      supabase.channel("realtime_sync")
-        .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .subscribe(),
-    ];
-    return () => {
-      channels.forEach((c) => supabase.removeChannel(c));
-    };
-  }, [fetchMonitorData]);
 
   useEffect(() => {
     if (location.state && location.state.autoSelectLoketId) {
@@ -114,39 +61,6 @@ export default function useHomeUser() {
       navigate("/", { replace: true, state: {} });
     }
   }, [location.state, navigate, masterLoket]);
-
-  const layananList = [
-    {
-      kategori: "Keuangan", judulTampilan: "KEUANGAN", kodeDisplay: "LOKET 1A / 1B", subTeks: "Yayasan",
-      status: masterLoket.find((l) => l.kode === "1A")?.status === "buka" || masterLoket.find((l) => l.kode === "1B")?.status === "buka" ? "Buka" : "Tutup",
-      sisa: masterLoket.find((l) => l.kode === "1A")?.sisa || 0,
-      aktifDisplay: masterLoket.find((l) => l.kode === "1A")?.aktif !== "—"
-        ? masterLoket.find((l) => l.kode === "1A")?.aktif
-        : masterLoket.find((l) => l.kode === "1B")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "1A")?.selanjutnya || [],
-    },
-    {
-      kategori: "Akademik", judulTampilan: "AKADEMIK", kodeDisplay: "LOKET 2", subTeks: "BAAK",
-      status: masterLoket.find((l) => l.kode === "2")?.status === "buka" ? "Buka" : "Tutup",
-      sisa: masterLoket.find((l) => l.kode === "2")?.sisa || 0,
-      aktifDisplay: masterLoket.find((l) => l.kode === "2")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "2")?.selanjutnya || [],
-    },
-    {
-      kategori: "Umum", judulTampilan: "UMUM", kodeDisplay: "LOKET 3", subTeks: "BAU",
-      status: masterLoket.find((l) => l.kode === "3")?.status === "buka" ? "Buka" : "Tutup",
-      sisa: masterLoket.find((l) => l.kode === "3")?.sisa || 0,
-      aktifDisplay: masterLoket.find((l) => l.kode === "3")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "3")?.selanjutnya || [],
-    },
-    {
-      kategori: "Kemahasiswaan", judulTampilan: "KEMAHASISWAAN", kodeDisplay: "LOKET 4", subTeks: "Beasiswa & Kemahasiswaan",
-      status: masterLoket.find((l) => l.kode === "4")?.status === "buka" ? "Buka" : "Tutup",
-      sisa: masterLoket.find((l) => l.kode === "4")?.sisa || 0,
-      aktifDisplay: masterLoket.find((l) => l.kode === "4")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "4")?.selanjutnya || [],
-    },
-  ];
 
   const layananAktif = layananList.find((l) => l.kategori === selectedKategori) || layananList[0];
   const loketPemanggil = masterLoket.find((l) => l.aktif === nomorTiketBaru && l.status === "buka");
@@ -158,11 +72,8 @@ export default function useHomeUser() {
     if (!savedProfile) { setShowAuthWarningModal(true); return; }
     const npmMahasiswa = JSON.parse(savedProfile).npm;
     const token = getToken();
-    let targetIdLayanan = 1;
-    if (selectedKategori === "Keuangan") targetIdLayanan = 1;
-    if (selectedKategori === "Akademik") targetIdLayanan = 2;
-    if (selectedKategori === "Umum") targetIdLayanan = 3;
-    if (selectedKategori === "Kemahasiswaan") targetIdLayanan = 4;
+    const targetLayanan = layananList.find(l => l.kategori === selectedKategori);
+    const targetIdLayanan = targetLayanan?.id || 1;
     try {
       const resData = await api.post("/api/antrean/ambil", { id_layanan: targetIdLayanan, npm_mahasiswa: npmMahasiswa }, token);
       if (!resData.success) throw new Error(resData.message || "Gagal mencetak nomor antrean.");
@@ -172,7 +83,7 @@ export default function useHomeUser() {
       sessionStorage.setItem("nomorTiketAktif", tiketBaru);
       sessionStorage.setItem("idAntreanAktif", idAntreanDB);
       setShowSuccessModal(true);
-      fetchMonitorData();
+      refreshMonitorData();
     } catch (err) {
       alert("Kesalahan: " + err.message);
     }
@@ -191,7 +102,7 @@ export default function useHomeUser() {
       sessionStorage.removeItem("nomorTiketAktif");
       sessionStorage.removeItem("idAntreanAktif");
       setShowCancelConfirmModal(false);
-      fetchMonitorData();
+      refreshMonitorData();
     } catch (err) { alert("Kesalahan: " + err.message); }
   };
 

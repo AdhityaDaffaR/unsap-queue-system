@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../config/supabase";
-import { api } from "../../config/api";
 import { useLoket } from "../../context/LoketContext";
 
 export default function useDisplayMonitor() {
-  const { masterLoket, setMasterLoket } = useLoket();
+  const { masterLoket, layananList } = useLoket();
 
-  const previousNomorRef = useRef({ "1A": "—", "1B": "—", 2: "—", 3: "—", 4: "—" });
+  const previousNomorRef = useRef({});
   const audioReadyRef = useRef(false);
   const preferredVoiceRef = useRef(null);
   const [audioReady, setAudioReady] = useState(false);
@@ -52,81 +51,25 @@ export default function useDisplayMonitor() {
     } catch (err) { console.error("❌ Gagal memainkan audio:", err); }
   };
 
-  const fetchMonitorData = useCallback(async () => {
-    try {
-      const resData = await api.get("/api/antrean/monitor");
-      if (resData.success) {
-        const { sedangDipanggil, sedangMenunggu } = resData.data;
-        setMasterLoket((prev) =>
-          prev.map((loket) => {
-            const dipanggil = sedangDipanggil.find((a) => a.nomor_loket === loket.kode);
-            let menunggu = [];
-            if (["1A", "1B", "2", "3", "4"].includes(loket.kode)) {
-              menunggu = sedangMenunggu.filter((a) => a.id_layanan === loket.id_layanan).map((a) => a.nomor_display);
-            }
-            const nomorBaru = dipanggil ? dipanggil.nomor_display : "—";
-            const nomorLama = previousNomorRef.current[loket.kode];
-            if (nomorBaru !== "—" && nomorBaru !== nomorLama) {
-              playAnnouncementAudio(nomorBaru, loket.kode);
-            }
-            previousNomorRef.current[loket.kode] = nomorBaru;
-            return { ...loket, aktif: nomorBaru, selanjutnya: menunggu, sisa: menunggu.length };
-          })
-        );
+  useEffect(() => {
+    masterLoket.forEach((loket) => {
+      const nomorLama = previousNomorRef.current[loket.kode] || "—";
+      const nomorBaru = loket.aktif;
+      if (nomorBaru !== "—" && nomorBaru !== nomorLama) {
+        playAnnouncementAudio(nomorBaru, loket.kode);
       }
-    } catch (err) { console.error("Gagal menarik data monitor:", err.message); }
-  }, []);
+      previousNomorRef.current[loket.kode] = nomorBaru;
+    });
+  }, [masterLoket]);
 
   useEffect(() => {
-    fetchMonitorData();
-    const channels = [
-      supabase.channel("display_antrean")
-        .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
-        .subscribe(),
-      supabase.channel("realtime_sync")
-        .on("broadcast", { event: "panggil_ulang" }, (payload) => {
-          playAnnouncementAudio(payload.payload.nomor_display, payload.payload.loket);
-        })
-        .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .subscribe(),
-    ];
-    return () => {
-      channels.forEach((c) => supabase.removeChannel(c));
-    };
-  }, [fetchMonitorData]);
+    const channel = supabase.channel("recall_announcement")
+      .on("broadcast", { event: "panggil_ulang" }, (payload) => {
+        playAnnouncementAudio(payload.payload.nomor_display, payload.payload.loket);
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
 
-  const layananMonitorList = [
-    {
-      kategori: "Keuangan", judul: "KEUANGAN", subLayanan: "Yayasan", kodeDisplay: "LOKET 1A / 1B",
-      status: masterLoket.find((l) => l.kode === "1A")?.status === "buka" || masterLoket.find((l) => l.kode === "1B")?.status === "buka" ? "Buka" : "Tutup",
-      konterFisikAktif: masterLoket.find((l) => l.kategori === "Keuangan" && l.aktif !== "—" && l.status === "buka")?.kode || "1A",
-      aktifDisplay: masterLoket.find((l) => l.kode === "1A")?.aktif !== "—"
-        ? masterLoket.find((l) => l.kode === "1A")?.aktif
-        : masterLoket.find((l) => l.kode === "1B")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "1A")?.selanjutnya || [],
-    },
-    {
-      kategori: "Akademik", judul: "AKADEMIK", subLayanan: "BAAK", kodeDisplay: "LOKET 2",
-      status: masterLoket.find((l) => l.kode === "2")?.status === "buka" ? "Buka" : "Tutup",
-      konterFisikAktif: "2",
-      aktifDisplay: masterLoket.find((l) => l.kode === "2")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "2")?.selanjutnya || [],
-    },
-    {
-      kategori: "Umum", judul: "UMUM", subLayanan: "BAU", kodeDisplay: "LOKET 3",
-      status: masterLoket.find((l) => l.kode === "3")?.status === "buka" ? "Buka" : "Tutup",
-      konterFisikAktif: "3",
-      aktifDisplay: masterLoket.find((l) => l.kode === "3")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "3")?.selanjutnya || [],
-    },
-    {
-      kategori: "Kemahasiswaan", judul: "KEMAHASISWAAN", subLayanan: "Beasiswa", kodeDisplay: "LOKET 4",
-      status: masterLoket.find((l) => l.kode === "4")?.status === "buka" ? "Buka" : "Tutup",
-      konterFisikAktif: "4",
-      aktifDisplay: masterLoket.find((l) => l.kode === "4")?.aktif || "—",
-      selanjutnyaList: masterLoket.find((l) => l.kode === "4")?.selanjutnya || [],
-    },
-  ];
-
-  return { masterLoket, layananMonitorList, audioReady, activateAudio };
+  return { masterLoket, layananList, audioReady, activateAudio };
 }

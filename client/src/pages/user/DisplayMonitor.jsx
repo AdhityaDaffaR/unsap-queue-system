@@ -4,7 +4,7 @@ import useDisplayMonitor from '../../hooks/user/useDisplayMonitor';
 import UnsapLogo from '../../assets/logo-unsap.png';
 
 export default function DisplayMonitor() {
-  const { layananMonitorList, audioReady, activateAudio } = useDisplayMonitor();
+  const { layananList, audioReady, activateAudio } = useDisplayMonitor();
   const [time, setTime] = useState(new Date());
   const [audioDismissed, setAudioDismissed] = useState(false);
 
@@ -73,7 +73,7 @@ export default function DisplayMonitor() {
         
         {/* SISI KIRI (KOLOM 7): 4 GRID LAYANAN UTAMA RAKSASA */}
         <section className="col-span-7 grid grid-cols-2 gap-4">
-          {layananMonitorList.map((layanan) => {
+          {layananList.map((layanan) => {
             const isTutup = layanan.status === 'Tutup';
             return (
               <div 
@@ -131,7 +131,7 @@ export default function DisplayMonitor() {
 
             {/* List Row untuk masing-masing 4 Rumpun Layanan */}
             <div className="flex-1 space-y-4 overflow-y-auto pr-1 scrollbar-thin flex flex-col justify-between py-2">
-              {layananMonitorList.map((layanan) => (
+              {layananList.map((layanan) => (
                 <div key={layanan.kategori} className="border-b border-slate-800/40 pb-3 last:border-0 last:pb-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{layanan.subLayanan} Pool</span>

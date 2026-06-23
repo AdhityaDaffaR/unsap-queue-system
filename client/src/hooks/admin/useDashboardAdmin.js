@@ -121,7 +121,7 @@ export default function useDashboardAdmin() {
     if (!isAdminLoggedIn || loketInfo.status === "tutup" || nomorAktif === "—") return;
     setIsCalling(true);
     try {
-      const recallChannel = supabase.channel("realtime_sync");
+      const recallChannel = supabase.channel("recall_announcement");
       recallChannel.subscribe((status) => {
         if (status === "SUBSCRIBED") {
           recallChannel.send({
