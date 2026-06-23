@@ -6,28 +6,29 @@ const LoketContext = createContext(null);
 
 export function LoketProvider({ children }) {
   const [masterLoket, setMasterLoket] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const fetchMasterLoket = useCallback(async () => {
     try {
       const resData = await api.get("/api/loket");
       if (resData.success) {
-        setMasterLoket(resData.data.map(l => ({
-          ...l,
-          kode: l.kode_loket,
-          nama: l.nama_loket,
-          kategori: l.layanan?.nama_layanan || "",
-          estimasi_waktu: l.layanan?.estimasi_waktu || 3,
-          aktif: "—",
-          sisa: 0,
-          selanjutnya: [],
-          estimasi: 0,
-        })));
+        setMasterLoket((prev) => {
+          const prevMap = {};
+          prev.forEach(l => { prevMap[l.kode] = l; });
+          return resData.data.map(l => ({
+            ...l,
+            kode: l.kode_loket,
+            nama: l.nama_loket,
+            kategori: l.layanan?.nama_layanan || "",
+            estimasi_waktu: l.layanan?.estimasi_waktu || 3,
+            aktif: prevMap[l.kode_loket]?.aktif || "—",
+            sisa: prevMap[l.kode_loket]?.sisa || 0,
+            selanjutnya: prevMap[l.kode_loket]?.selanjutnya || [],
+            estimasi: prevMap[l.kode_loket]?.estimasi || 0,
+          }));
+        });
       }
     } catch (err) {
       console.error("Gagal memuat master loket dari context:", err);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -102,7 +103,7 @@ export function LoketProvider({ children }) {
   }, [masterLoket]);
 
   return (
-    <LoketContext.Provider value={{ masterLoket, setMasterLoket, loading, refreshMonitorData: fetchMonitorData, layananList }}>
+    <LoketContext.Provider value={{ masterLoket, setMasterLoket, refreshMonitorData: fetchMonitorData, layananList }}>
       {children}
     </LoketContext.Provider>
   );

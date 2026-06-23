@@ -53,9 +53,7 @@ export default function DashboardAdmin() {
   const isAdminTutup = loketInfo.status === "tutup";
   const statusLabel = !isAdminTutup && isAdminLoggedIn ? "Buka" : "Tutup";
 
-  let namaTampilanKonter = loketInfo.nama;
-  if (loketInfo.id === 4 || loketInfo.kode === "3")
-    namaTampilanKonter = "UMUM (LOKET 3) (BAU)";
+  const namaTampilanKonter = loketInfo.nama;
 
   // VARIABEL PENGENDALI: Mengunci kontrol penuh jika status login bernilai FALSE
   const isSistemTerkunci = !isAdminLoggedIn;

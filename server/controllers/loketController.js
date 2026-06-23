@@ -18,7 +18,8 @@ export const getAllLoket = async (req, res) => {
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ getAllLoket error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -41,7 +42,8 @@ export const getLoketByStaf = async (req, res) => {
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ getLoketByStaf error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -84,11 +86,12 @@ export const pilihLoket = async (req, res) => {
 
     if (error) throw error;
 
-    broadcastUpdate('loket_berubah');
+    await broadcastUpdate('loket_berubah');
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ pilihLoket error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -140,10 +143,11 @@ export const updateStatusLoket = async (req, res) => {
 
     if (error) throw error;
 
-    broadcastUpdate('loket_berubah');
+    await broadcastUpdate('loket_berubah');
 
     return res.status(200).json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ updateStatusLoket error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };

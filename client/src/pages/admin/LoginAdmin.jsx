@@ -178,7 +178,12 @@ export default function LoginAdmin() {
           )}
 
           <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
-            {listLoketTugas.map((loket) => {
+            {listLoketTugas
+              .filter((loket) => {
+                const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
+                return adminProfileData.id_layanan ? loket.id_layanan === adminProfileData.id_layanan : true;
+              })
+              .map((loket) => {
               const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
               const isDipakai = loket.id_staf_aktif !== null && loket.id_staf_aktif !== adminProfileData.id;
               return (

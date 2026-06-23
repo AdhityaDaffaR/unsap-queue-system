@@ -54,7 +54,8 @@ export const loginStaf = async (req, res) => {
     });
 
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ loginStaf error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -123,6 +124,7 @@ export const loginMahasiswa = async (req, res) => {
     });
 
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ loginMahasiswa error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };

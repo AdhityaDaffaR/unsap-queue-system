@@ -1,6 +1,10 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'unsap_queue_system_jwt_secret_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET environment variable tidak diatur!');
+  process.exit(1);
+}
 
 export const generateToken = (payload) => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '12h' });

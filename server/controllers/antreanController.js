@@ -83,7 +83,8 @@ export const ambilAntreanBaru = async (req, res) => {
 
     return res.status(201).json({ success: true, data });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ ambilAntreanBaru error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -118,7 +119,8 @@ export const batalAntrean = async (req, res) => {
     await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ batalAntrean error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -130,14 +132,6 @@ export const panggilAntrean = async (req, res) => {
   try {
     const { id_layanan, nomor_loket } = req.body;
     const hariIni = getTanggalHariIniWIB();
-
-    await supabase
-      .from("antrean")
-      .update({ status: "selesai" })
-      .eq("nomor_loket", nomor_loket)
-      .eq("status", "dipanggil")
-      .eq("tanggal_antrean", hariIni);
-
     const { data: next, error } = await supabase
       .from("antrean")
       .select("*")
@@ -147,29 +141,32 @@ export const panggilAntrean = async (req, res) => {
       .order("nomor_urut", { ascending: true })
       .limit(1)
       .maybeSingle();
-
+    if (error) throw error;
     if (!next) {
       await broadcastUpdate('antrean_berubah');
       return res.status(200).json({ success: true, message: "Antrean kosong" });
     }
-
     const { data: updated, error: errUpdate } = await supabase
       .from("antrean")
       .update({ status: "dipanggil", nomor_loket })
       .eq("id", next.id)
       .eq("status", "menunggu")
       .select();
-
     if (errUpdate) throw errUpdate;
-
     if (!updated || updated.length === 0) {
       return res.status(409).json({ success: false, message: "Antrean telah diambil loket lain, coba lagi." });
     }
-
+    await supabase
+      .from("antrean")
+      .update({ status: "selesai" })
+      .eq("nomor_loket", nomor_loket)
+      .eq("status", "dipanggil")
+      .eq("tanggal_antrean", hariIni);
     await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: updated[0] });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ panggilAntrean error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -190,7 +187,8 @@ export const lewatiAntrean = async (req, res) => {
     await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ lewatiAntrean error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -220,7 +218,8 @@ export const panggilAntreanLewati = async (req, res) => {
     await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ panggilAntreanLewati error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };
 
@@ -263,6 +262,7 @@ export const getAntreanMonitor = async (req, res) => {
       },
     });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("❌ getAntreanMonitor error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };

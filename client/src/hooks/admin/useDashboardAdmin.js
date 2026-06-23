@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../config/supabase";
 import { api } from "../../config/api";
+import { useLoket } from "../../context/LoketContext";
 
 export default function useDashboardAdmin() {
+  const { masterLoket } = useLoket();
   const navigate = useNavigate();
   const token = sessionStorage.getItem("tokenAdmin");
   const isAdminLoggedIn = !!token;
@@ -57,12 +59,8 @@ export default function useDashboardAdmin() {
       supabase.channel("admin_antrean")
         .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
         .subscribe(),
-      supabase.channel("admin_loket")
-        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, fetchMonitorData)
-        .subscribe(),
       supabase.channel("realtime_sync")
         .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .on("broadcast", { event: "loket_berubah" }, fetchMonitorData)
         .subscribe(),
     ];
     return () => {
@@ -72,14 +70,8 @@ export default function useDashboardAdmin() {
 
   useEffect(() => {
     if (!isAdminLoggedIn) return;
-    const fetchLoketMaster = async () => {
-      try {
-        const resData = await api.get("/api/loket", token);
-        if (resData.success) setListLoketTugas(resData.data);
-      } catch (err) { console.error("Gagal memuat data loket:", err); }
-    };
-    fetchLoketMaster();
-  }, [isAdminLoggedIn, token]);
+    setListLoketTugas(masterLoket);
+  }, [isAdminLoggedIn, masterLoket]);
 
   useEffect(() => {
     if (!isAdminLoggedIn || !loketInfo.kode || loketInfo.kode === "—") return;

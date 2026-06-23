@@ -62,7 +62,7 @@ export default function useHomeUser() {
     }
   }, [location.state, navigate, masterLoket]);
 
-  const layananAktif = layananList.find((l) => l.kategori === selectedKategori) || layananList[0];
+  const layananAktif = layananList.find((l) => l.kategori === selectedKategori) || layananList[0] || { status: "Tutup", aktifDisplay: "—", kodeDisplay: "", sisa: 0, judulTampilan: "Memuat Data...", subTeks: "", selanjutnyaList: [] };
   const loketPemanggil = masterLoket.find((l) => l.aktif === nomorTiketBaru && l.status === "buka");
 
   const handleAmbilAntrean = async () => {
@@ -73,7 +73,8 @@ export default function useHomeUser() {
     const npmMahasiswa = JSON.parse(savedProfile).npm;
     const token = getToken();
     const targetLayanan = layananList.find(l => l.kategori === selectedKategori);
-    const targetIdLayanan = targetLayanan?.id || 1;
+    if (!targetLayanan) { alert("Kategori layanan tidak tersedia. Silakan pilih ulang."); return; }
+    const targetIdLayanan = targetLayanan.id;
     try {
       const resData = await api.post("/api/antrean/ambil", { id_layanan: targetIdLayanan, npm_mahasiswa: npmMahasiswa }, token);
       if (!resData.success) throw new Error(resData.message || "Gagal mencetak nomor antrean.");

@@ -6,8 +6,15 @@ import antreanRoutes from './routes/antreanRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import loketRoutes from './routes/loketRoutes.js';
 import { initBroadcast } from './config/broadcast.js';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: "Terlalu banyak permintaan. Silakan coba lagi dalam 15 menit." }
+});
 
 process.on('unhandledRejection', (reason) => {
   console.error('❌ Unhandled Rejection:', reason);
@@ -18,7 +25,7 @@ initBroadcast();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({ origin: ['http://localhost:5173'] }));
 app.use(express.json());
 
 // Rute Cek Kesehatan
@@ -29,8 +36,14 @@ app.get('/', (req, res) => {
 // Pendaftaran Seluruh Jalur API Utama
 app.use('/api/layanan', layananRoutes);
 app.use('/api/antrean', antreanRoutes);
+app.use('/api/auth', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/loket', loketRoutes);
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Endpoint tidak ditemukan." });
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
