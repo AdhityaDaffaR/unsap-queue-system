@@ -453,7 +453,7 @@ export default function DashboardAdmin() {
             {listLoketTugas
               .filter((l) => l.id !== loketInfo.id)
               .map((meja) => {
-                const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
+                const adminProfileData = JSON.parse(localStorage.getItem("adminProfileData") || "{}");
                 const isDipakai = meja.id_staf_aktif !== null && meja.id_staf_aktif !== adminProfileData.id;
                 const isMejaTujuanTutup = meja.status === "tutup" || meja.status === "Tutup";
 

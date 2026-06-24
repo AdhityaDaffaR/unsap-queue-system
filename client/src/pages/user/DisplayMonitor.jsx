@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Volume2 } from 'lucide-react';
 import useDisplayMonitor from '../../hooks/user/useDisplayMonitor';
-import UnsapLogo from '../../assets/logo-unsap.png';
+import UnsapLogo from '../../assets/UNSAP.png';
 
 export default function DisplayMonitor() {
   const { layananList, audioReady, activateAudio } = useDisplayMonitor();

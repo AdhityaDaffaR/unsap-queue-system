@@ -15,7 +15,7 @@ export default function useLoginAdmin() {
   const [listLoketTugas, setListLoketTugas] = useState([]);
   const [fetchError, setFetchError] = useState("");
 
-  const isAdminLoggedIn = !!sessionStorage.getItem("tokenAdmin");
+  const isAdminLoggedIn = !!localStorage.getItem("tokenAdmin");
 
   const fetchLoketList = async () => {
     try {
@@ -50,9 +50,9 @@ export default function useLoginAdmin() {
         throw new Error(resData.message || "Akses Ditolak!");
       }
 
-      sessionStorage.removeItem("loket_tugas_aktif");
-      sessionStorage.setItem("tokenAdmin", resData.token);
-      sessionStorage.setItem("adminProfileData", JSON.stringify({
+      localStorage.removeItem("loket_tugas_aktif");
+      localStorage.setItem("tokenAdmin", resData.token);
+      localStorage.setItem("adminProfileData", JSON.stringify({
         id: resData.data.id,
         username: resData.data.username,
         nama: resData.data.nama_staf,
@@ -70,7 +70,7 @@ export default function useLoginAdmin() {
   };
 
   const handlePilihLoket = async (loket) => {
-    const token = sessionStorage.getItem("tokenAdmin");
+    const token = localStorage.getItem("tokenAdmin");
     if (!token) return;
 
     try {
@@ -80,7 +80,7 @@ export default function useLoginAdmin() {
         throw new Error(resData.message || "Gagal memilih loket.");
       }
 
-      sessionStorage.setItem("loket_tugas_aktif", JSON.stringify({
+      localStorage.setItem("loket_tugas_aktif", JSON.stringify({
         id: resData.data.id,
         kode: resData.data.kode_loket,
         nama: resData.data.nama_loket,

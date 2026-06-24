@@ -7,16 +7,16 @@ import { useLoket } from "../../context/LoketContext";
 export default function useDashboardAdmin() {
   const { masterLoket } = useLoket();
   const navigate = useNavigate();
-  const token = sessionStorage.getItem("tokenAdmin");
+  const token = localStorage.getItem("tokenAdmin");
   const isAdminLoggedIn = !!token;
 
   const [adminProfile] = useState(() => {
-    const saved = sessionStorage.getItem("adminProfileData");
+    const saved = localStorage.getItem("adminProfileData");
     return saved && isAdminLoggedIn ? JSON.parse(saved) : { username: "", nama: "", id_layanan: null };
   });
 
   const [loketInfo, setLoketInfo] = useState(() => {
-    const saved = sessionStorage.getItem("loket_tugas_aktif");
+    const saved = localStorage.getItem("loket_tugas_aktif");
     return saved && isAdminLoggedIn ? JSON.parse(saved) : { id: null, kode: "—", nama: "Meja Non-Aktif", status: "tutup", id_layanan: null };
   });
 
@@ -82,14 +82,14 @@ export default function useDashboardAdmin() {
           const serverLoket = resData.data.find((l) => l.kode_loket === loketInfo.kode);
           if (!serverLoket) {
             setLoketInfo({ id: null, kode: "—", nama: "Meja Non-Aktif", status: "tutup", id_layanan: null });
-            sessionStorage.removeItem("loket_tugas_aktif");
+            localStorage.removeItem("loket_tugas_aktif");
           } else if (serverLoket.id_staf_aktif !== null && serverLoket.id_staf_aktif !== adminProfile.id) {
             setLoketInfo({ id: null, kode: "—", nama: "Meja Non-Aktif", status: "tutup", id_layanan: null });
-            sessionStorage.removeItem("loket_tugas_aktif");
+            localStorage.removeItem("loket_tugas_aktif");
           } else if (serverLoket.status !== loketInfo.status) {
             const updated = { id: serverLoket.id, kode: serverLoket.kode_loket, nama: serverLoket.nama_loket, id_layanan: serverLoket.id_layanan, status: serverLoket.status };
             setLoketInfo(updated);
-            sessionStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
+            localStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
           }
         }
       } catch (err) {
@@ -159,7 +159,7 @@ export default function useDashboardAdmin() {
       if (!resData.success) throw new Error(resData.message || "Gagal mengubah status loket.");
       const updated = { id: resData.data.id, kode: resData.data.kode_loket, nama: resData.data.nama_loket, id_layanan: resData.data.id_layanan, status: resData.data.status };
       setLoketInfo(updated);
-      sessionStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
+      localStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
       setShowConfirmModal(false);
     } catch (err) { alert("Kesalahan: " + err.message); }
   };
@@ -171,7 +171,7 @@ export default function useDashboardAdmin() {
       if (!resData.success) throw new Error(resData.message || "Gagal pindah loket.");
       const updated = { id: resData.data.id, kode: resData.data.kode_loket, nama: resData.data.nama_loket, id_layanan: resData.data.id_layanan, status: resData.data.status };
       setLoketInfo(updated);
-      sessionStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
+      localStorage.setItem("loket_tugas_aktif", JSON.stringify(updated));
       setShowSwitchModal(false);
     } catch (err) { alert("Kesalahan: " + err.message); }
   };
@@ -184,8 +184,13 @@ export default function useDashboardAdmin() {
     }
   };
 
-  const handleAdminLogout = () => {
-    ["loket_tugas_aktif", "adminProfileData", "tokenAdmin"].forEach((k) => sessionStorage.removeItem(k));
+  const handleAdminLogout = async () => {
+    try {
+      await api.post("/api/auth/logout", {}, token);
+    } catch (err) {
+      console.error("Gagal membersihkan sesi server:", err);
+    }
+    ["loket_tugas_aktif", "adminProfileData", "tokenAdmin"].forEach((k) => localStorage.removeItem(k));
     setShowLogoutModal(false);
     navigate("/admin/login", { replace: true });
   };

@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase.js';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../middleware/auth.js';
+import { broadcastUpdate } from '../config/broadcast.js';
 
 /**
  * ========================================================
@@ -125,6 +126,42 @@ export const loginMahasiswa = async (req, res) => {
 
   } catch (err) {
     console.error("❌ loginMahasiswa error:", err.message);
+    return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
+  }
+};
+
+/**
+ * ========================================================
+ * 3. FUNGSI LOGOUT STAF (Bersihkan id_staf_aktif)
+ * ========================================================
+ */
+export const logoutStaf = async (req, res) => {
+  try {
+    const id_staf = req.user.id;
+
+    const { data: loketAktif, error: findError } = await supabase
+      .from('loket')
+      .select('id')
+      .eq('id_staf_aktif', id_staf);
+
+    if (findError) throw findError;
+
+    if (loketAktif && loketAktif.length > 0) {
+      const ids = loketAktif.map((l) => l.id);
+
+      const { error: updateError } = await supabase
+        .from('loket')
+        .update({ id_staf_aktif: null, status: 'tutup', updated_at: new Date().toISOString() })
+        .in('id', ids);
+
+      if (updateError) throw updateError;
+
+      await broadcastUpdate('loket_berubah');
+    }
+
+    return res.status(200).json({ success: true, message: 'Berhasil keluar dari sistem.' });
+  } catch (err) {
+    console.error("❌ logoutStaf error:", err.message);
     return res.status(500).json({ success: false, message: "Terjadi kesalahan internal server." });
   }
 };

@@ -10,9 +10,9 @@ const formatNamaMahasiswa = (namaLengkap) => {
   return `${duaKataPertama} ${sisaInisial}`;
 };
 
-const getIsLoggedIn = () => sessionStorage.getItem('isLoggedInUser') === 'true';
+const getIsLoggedIn = () => localStorage.getItem('isLoggedInUser') === 'true';
 const getProfile = () => {
-  const saved = sessionStorage.getItem('userProfileData');
+  const saved = localStorage.getItem('userProfileData');
   if (saved) {
     const parsed = JSON.parse(saved);
     return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
@@ -38,7 +38,7 @@ export default function useBantuan() {
 
   // LOGIKA KELUAR AKUN SINKRON
   const handleLogout = () => {
-    ['tokenMahasiswa', 'isLoggedInUser', 'userProfileData', 'nomorTiketAktif', 'idAntreanAktif'].forEach((k) => sessionStorage.removeItem(k));
+    ['tokenMahasiswa', 'isLoggedInUser', 'userProfileData', 'nomorTiketAktif', 'idAntreanAktif'].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate('/');
   };

@@ -39,9 +39,9 @@ export default function useLoginUser() {
         throw new Error(resData.message || 'Gagal login, periksa kembali data Anda.');
       }
       
-      sessionStorage.setItem('tokenMahasiswa', resData.token);
-      sessionStorage.setItem('isLoggedInUser', 'true');
-      sessionStorage.setItem('userProfileData', JSON.stringify({
+      localStorage.setItem('tokenMahasiswa', resData.token);
+      localStorage.setItem('isLoggedInUser', 'true');
+      localStorage.setItem('userProfileData', JSON.stringify({
         id: resData.data.id,
         nama: resData.data.nama_mahasiswa,
         npm: resData.data.npm,
@@ -50,8 +50,8 @@ export default function useLoginUser() {
       }));
 
       if (resData.tiket_aktif) {
-        sessionStorage.setItem('nomorTiketAktif', resData.tiket_aktif.nomor_display);
-        sessionStorage.setItem('idAntreanAktif', resData.tiket_aktif.id);
+        localStorage.setItem('nomorTiketAktif', resData.tiket_aktif.nomor_display);
+        localStorage.setItem('idAntreanAktif', resData.tiket_aktif.id);
       }
 
       navigate('/'); 

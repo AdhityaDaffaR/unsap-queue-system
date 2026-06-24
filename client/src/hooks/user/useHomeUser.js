@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../../config/api";
 import { useLoket } from "../../context/LoketContext";
 
-const getToken = () => sessionStorage.getItem("tokenMahasiswa");
-const getIsLoggedIn = () => sessionStorage.getItem("isLoggedInUser") === "true" && !!getToken();
+const getToken = () => localStorage.getItem("tokenMahasiswa");
+const getIsLoggedIn = () => localStorage.getItem("isLoggedInUser") === "true" && !!getToken();
 
 const formatNamaMahasiswa = (namaLengkap) => {
   if (!namaLengkap) return "Guest Civitas";
@@ -16,7 +16,7 @@ const formatNamaMahasiswa = (namaLengkap) => {
 };
 
 const getProfile = () => {
-  const saved = sessionStorage.getItem("userProfileData");
+  const saved = localStorage.getItem("userProfileData");
   if (saved) {
     const parsed = JSON.parse(saved);
     return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
@@ -47,7 +47,7 @@ export default function useHomeUser() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const [nomorTiketBaru, setNomorTiketBaru] = useState(() => {
-    return sessionStorage.getItem("nomorTiketAktif") || "";
+    return localStorage.getItem("nomorTiketAktif") || "";
   });
 
   const { masterLoket, layananList, refreshMonitorData } = useLoket();
@@ -68,7 +68,7 @@ export default function useHomeUser() {
   const handleAmbilAntrean = async () => {
     if (layananAktif.status === "Tutup" || nomorTiketBaru) return;
     if (!isLoggedIn) { setShowAuthWarningModal(true); return; }
-    const savedProfile = sessionStorage.getItem("userProfileData");
+    const savedProfile = localStorage.getItem("userProfileData");
     if (!savedProfile) { setShowAuthWarningModal(true); return; }
     const npmMahasiswa = JSON.parse(savedProfile).npm;
     const token = getToken();
@@ -81,8 +81,8 @@ export default function useHomeUser() {
       const tiketBaru = resData.data.nomor_display;
       const idAntreanDB = resData.data.id;
       setNomorTiketBaru(tiketBaru);
-      sessionStorage.setItem("nomorTiketAktif", tiketBaru);
-      sessionStorage.setItem("idAntreanAktif", idAntreanDB);
+      localStorage.setItem("nomorTiketAktif", tiketBaru);
+      localStorage.setItem("idAntreanAktif", idAntreanDB);
       setShowSuccessModal(true);
       refreshMonitorData();
     } catch (err) {
@@ -93,15 +93,15 @@ export default function useHomeUser() {
   const handleBatalkanAntrean = () => setShowCancelConfirmModal(true);
 
   const handleConfirmPembatalan = async () => {
-    const idAntrean = sessionStorage.getItem("idAntreanAktif");
+    const idAntrean = localStorage.getItem("idAntreanAktif");
     const token = getToken();
     if (!idAntrean) { alert("Referensi ID tiket tidak ditemukan."); return; }
     try {
       const resData = await api.patch("/api/antrean/batal", { id_antrean: idAntrean }, token);
       if (!resData.success) throw new Error(resData.message || "Gagal membatalkan tiket.");
       setNomorTiketBaru("");
-      sessionStorage.removeItem("nomorTiketAktif");
-      sessionStorage.removeItem("idAntreanAktif");
+      localStorage.removeItem("nomorTiketAktif");
+      localStorage.removeItem("idAntreanAktif");
       setShowCancelConfirmModal(false);
       refreshMonitorData();
     } catch (err) { alert("Kesalahan: " + err.message); }
@@ -110,7 +110,7 @@ export default function useHomeUser() {
   const triggerLogoutConfirm = () => setShowLogoutModal(true);
 
   const handleConfirmLogout = () => {
-    ["tokenMahasiswa", "isLoggedInUser", "userProfileData", "nomorTiketAktif", "idAntreanAktif"].forEach((k) => sessionStorage.removeItem(k));
+    ["tokenMahasiswa", "isLoggedInUser", "userProfileData", "nomorTiketAktif", "idAntreanAktif"].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false); setIsMenuOpen(false); setNomorTiketBaru(""); setShowLogoutModal(false);
     navigate("/");
   };

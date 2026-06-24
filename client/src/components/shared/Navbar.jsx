@@ -2,7 +2,7 @@ import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion'; 
 import { LogIn, LogOut, Home, Layers, HelpCircle, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-import LogoUnsap from '../../assets/logo-unsap.png';
+import LogoUnsap from '../../assets/UNSAP.png';
 
 export default function Navbar({ 
   navigate, 
@@ -26,7 +26,7 @@ export default function Navbar({
           <img
             src={LogoUnsap}
             alt="Logo Universitas Sebelas April"
-            className="w-8 h-8 rounded-full object-cover select-none"
+            className="w-8 h-8 object-cover select-none"
           />
           <div className="flex flex-col justify-center select-none">
             <span className="text-[11px] font-black text-text-main leading-none uppercase tracking-wider">UNIVERSITAS SEBELAS APRIL SUMEDANG</span>

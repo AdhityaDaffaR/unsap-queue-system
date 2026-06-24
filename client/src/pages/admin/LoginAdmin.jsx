@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import {
   Eye,
   EyeOff,
@@ -36,6 +37,12 @@ export default function LoginAdmin() {
     isAdminLoggedIn,
     navigate,
   } = useLoginAdmin();
+
+  useEffect(() => {
+    if (isAdminLoggedIn && !!localStorage.getItem("loket_tugas_aktif")) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [isAdminLoggedIn, navigate]);
 
   // KEMBALI KE ALUR AWAL: Mengarahkan kembali ke Dashboard jika sudah login, atau ke Monitor Utama jika belum
   const handleBackNavigation = () => {
@@ -147,7 +154,7 @@ export default function LoginAdmin() {
         isOpen={showSelectLoketModal}
         onClose={() => setShowSelectLoketModal(false)}
         title="Penugasan Operasional Loket"
-        showCloseButton={false}
+        showCloseButton={true}
       >
         <div className="space-y-3 py-1">
           <div className="text-center pb-2">
@@ -180,11 +187,11 @@ export default function LoginAdmin() {
           <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1 scrollbar-thin">
             {listLoketTugas
               .filter((loket) => {
-                const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
+                const adminProfileData = JSON.parse(localStorage.getItem("adminProfileData") || "{}");
                 return adminProfileData.id_layanan ? loket.id_layanan === adminProfileData.id_layanan : true;
               })
               .map((loket) => {
-              const adminProfileData = JSON.parse(sessionStorage.getItem("adminProfileData") || "{}");
+              const adminProfileData = JSON.parse(localStorage.getItem("adminProfileData") || "{}");
               const isDipakai = loket.id_staf_aktif !== null && loket.id_staf_aktif !== adminProfileData.id;
               return (
                 <button
