@@ -22,7 +22,7 @@ export default function DisplayMonitor() {
             <Volume2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-bold text-white">Aktifkan Suara</p>
-              <p className="text-[10px] text-slate-400 leading-relaxed mt-0.5">
+              <p className="text-tiny text-slate-400 leading-relaxed mt-0.5">
                 Monitor membutuhkan izin suara untuk memanggil nomor antrian melalui pengeras suara.
               </p>
             </div>
@@ -62,7 +62,7 @@ export default function DisplayMonitor() {
           <p className="text-2xl font-black tracking-widest text-brand-primary leading-none">
             {time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5 leading-none">
+              <p className="text-tiny text-slate-400 font-bold uppercase tracking-widest mt-1.5 leading-none">
             {time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function DisplayMonitor() {
             return (
               <div 
                 key={layanan.kategori}
-                className={`bg-[#151c2c] border rounded-3xl p-6 flex flex-col justify-between shadow-xl transition-all duration-300 relative overflow-hidden ${
+                className={`bg-[#151c2c] border rounded-3xl p-6 flex flex-col justify-between shadow-[--shadow-modal] transition-all duration-300 relative overflow-hidden ${
                   isTutup ? 'opacity-25 bg-[#0f1422] border-slate-900' : 'border-slate-800/80 ring-1 ring-slate-900/40'
                 }`}
               >
@@ -90,15 +90,15 @@ export default function DisplayMonitor() {
                     <h3 className="text-sm font-black tracking-tight text-white uppercase truncate">
                       {layanan.judul}
                     </h3>
-                    <p className="text-xs font-semibold text-slate-400 mt-0.5">{layanan.subLayanan}</p>
+                    <p className="text-tiny font-semibold text-slate-400 mt-0.5">{layanan.subLayanan}</p>
                   </div>
-                  <span className="text-[9px] font-black tracking-widest bg-[#0a0d16] border border-slate-800 px-2 py-1 rounded text-slate-400 uppercase shrink-0">
+                  <span className="text-micro font-black tracking-widest bg-[#0a0d16] border border-slate-800 px-2 py-1 rounded-[--radius-sm] text-slate-400 uppercase shrink-0">
                     {layanan.kodeDisplay}
                   </span>
                 </div>
 
                 {/* Bagian Tengah: Display Angka Raksasa (High-Contrast Readability) */}
-                <div className="my-4 text-center py-4 bg-[#0a0d16]/60 border border-slate-900 rounded-2xl shadow-inner">
+                <div className="my-4 text-center py-4 bg-[#0a0d16]/60 border border-slate-900 rounded-[--radius-lg] shadow-[--shadow-inner]">
                   <span className={`text-6xl font-black tracking-tighter leading-none block ${
                     isTutup ? 'text-slate-700' : 'text-emerald-400'
                   }`}>
@@ -109,11 +109,11 @@ export default function DisplayMonitor() {
                 {/* Bagian Bawah: Instruksi Konter Tujuan Dinamis Melompat Sesuai Klik Petugas */}
                 <div className="w-full flex items-center justify-center min-h-[28px]">
                   {!isTutup && layanan.aktifDisplay !== "—" ? (
-                    <p className="text-[10px] font-black bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-1 rounded-full uppercase tracking-wider animate-pulse flex items-center gap-1">
+                    <p className="text-tiny font-black bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-1 rounded-full uppercase tracking-wider animate-pulse flex items-center gap-1">
                       <span>Menuju Loket {layanan.konterFisikAktif}</span>
                     </p>
                   ) : (
-                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Operasional Berhenti</p>
+                    <p className="text-tiny font-bold text-slate-600 uppercase tracking-widest">Operasional Berhenti</p>
                   )}
                 </div>
               </div>
@@ -122,11 +122,11 @@ export default function DisplayMonitor() {
         </section>
 
         {/* SISI KANAN (KOLOM 5): POOL DAFTAR TUNGGU GLOBAL BERKELOMPOK PER LAYANAN */}
-        <section className="col-span-5 bg-[#151c2c] border border-slate-800/80 rounded-3xl p-5 flex flex-col justify-between shadow-2xl overflow-hidden">
+        <section className="col-span-5 bg-[#151c2c] border border-slate-800/80 rounded-3xl p-5 flex flex-col justify-between shadow-[--shadow-modal] overflow-hidden">
           <div className="space-y-4 flex-1 flex flex-col min-h-0">
             <div>
-              <h3 className="text-xs font-black tracking-wider text-slate-400 uppercase">DAFTAR ANTRIAN LAYANAN SELANJUTNYA</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Urutan antrian berkelompok berdasarkan klaster urusan</p>
+              <h3 className="text-tiny font-black tracking-wider text-slate-400 uppercase">DAFTAR ANTRIAN LAYANAN SELANJUTNYA</h3>
+              <p className="text-caption text-slate-500 mt-0.5">Urutan antrian berkelompok berdasarkan klaster urusan</p>
             </div>
 
             {/* List Row untuk masing-masing 4 Rumpun Layanan */}
@@ -134,21 +134,21 @@ export default function DisplayMonitor() {
               {layananList.map((layanan) => (
                 <div key={layanan.kategori} className="border-b border-slate-800/40 pb-3 last:border-0 last:pb-0">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{layanan.subLayanan} Pool</span>
-                    <span className="text-[9px] font-bold text-slate-500 uppercase">Sisa: {layanan.selanjutnyaList.length} Orang</span>
+                    <span className="text-tiny font-black text-slate-400 uppercase tracking-wider">{layanan.subLayanan} Pool</span>
+                    <span className="text-micro font-bold text-slate-500 uppercase">Sisa: {layanan.selanjutnyaList.length} Orang</span>
                   </div>
 
                   {/* Baris nomor horizontal berjalan kekanan */}
                   <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none min-h-[36px]">
                     {layanan.status === "Buka" && layanan.selanjutnyaList.length > 0 ? (
                       layanan.selanjutnyaList.map((nomor, idx) => (
-                        <div key={idx} className="px-3 py-1.5 bg-[#0a0d16]/80 border border-slate-800/80 rounded-xl flex items-center gap-1.5 shrink-0">
-                          <span className="text-[9px] font-bold text-slate-500">{idx + 1}</span>
-                          <span className="text-xs font-black tracking-tight text-slate-300">{nomor}</span>
+                        <div key={idx} className="px-3 py-1.5 bg-[#0a0d16]/80 border border-slate-800/80 rounded-[--radius-md] flex items-center gap-1.5 shrink-0">
+                          <span className="text-micro font-bold text-slate-500">{idx + 1}</span>
+                          <span className="text-tiny font-black tracking-tight text-slate-300">{nomor}</span>
                         </div>
                       ))
                     ) : (
-                      <span className="text-[11px] text-slate-600 font-medium italic pl-1">
+                      <span className="text-caption text-slate-600 font-medium italic pl-1">
                         {layanan.status === "Tutup" ? "Layanan konter ditutup" : "Belum ada nomor mengantre"}
                       </span>
                     )}
@@ -158,7 +158,7 @@ export default function DisplayMonitor() {
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider text-right border-t border-slate-800/60 pt-3 select-none">
+          <div className="text-tiny text-slate-500 font-bold uppercase tracking-wider text-right border-t border-slate-800/60 pt-3 select-none">
             Smart Queue System • UNSAP Project
           </div>
         </section>
@@ -166,8 +166,8 @@ export default function DisplayMonitor() {
       </main>
 
       {/* FOOTER: RUNNING TEXT BERJALAN ALAMI */}
-      <footer className="w-full bg-brand-primary text-white h-10 flex items-center font-bold text-xs shadow-inner relative overflow-hidden">
-        <div className="bg-brand-primary-hover px-6 h-full flex items-center shrink-0 z-10 shadow-md uppercase tracking-wider text-[11px] font-black border-r border-white/10 select-none">
+      <footer className="w-full bg-brand-primary text-white h-10 flex items-center font-bold text-tiny shadow-[--shadow-inner] relative overflow-hidden">
+        <div className="bg-brand-primary-hover px-6 h-full flex items-center shrink-0 z-10 shadow-[--shadow-dropdown] uppercase tracking-wider text-caption font-black border-r border-white/10 select-none">
           Maklumat Kampus
         </div>
         <div className="w-full overflow-hidden whitespace-nowrap flex items-center">

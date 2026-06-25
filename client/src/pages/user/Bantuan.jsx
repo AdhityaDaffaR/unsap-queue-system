@@ -22,7 +22,6 @@ export default function Bantuan() {
   return (
     <div className="min-h-screen bg-bg-main text-text-main flex flex-col">
       
-      {/* FIX INTEGRASI SINKRON: Mengalirkan data login dinamis dari useBantuan */}
       <Navbar 
         navigate={navigate}
         isLoggedIn={isLoggedIn}
@@ -38,13 +37,13 @@ export default function Bantuan() {
         
         {/* HERO BANNER SECTION */}
         <section className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary mx-auto shadow-sm">
+          <div className="w-12 h-12 rounded-[--radius-lg] bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary mx-auto shadow-[--shadow-card]">
             <HelpCircle size={24} />
           </div>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-text-main">
             Pusat Bantuan & Layanan Informasi
           </h2>
-          <p className="text-xs md:text-sm text-text-muted leading-relaxed">
+          <p className="text-tiny md:text-sm text-text-muted leading-relaxed">
             Punya kendala terkait sistem antrean atau operasional loket terpadu Universitas Sebelas April? Temukan panduan dan jawaban instan di bawah ini.
           </p>
         </section>
@@ -56,7 +55,7 @@ export default function Bantuan() {
           <section className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2 px-1 mb-2">
               <Info size={16} className="text-brand-primary" />
-              <h3 className="text-xs font-bold tracking-tight uppercase text-text-muted">Pertanyaan Yang Sering Diajukan</h3>
+              <h3 className="text-tiny font-bold tracking-tight uppercase text-text-muted">Pertanyaan Yang Sering Diajukan</h3>
             </div>
 
             {dataFAQ.map((item, index) => {
@@ -77,7 +76,7 @@ export default function Bantuan() {
                   <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
                     isOpen ? 'max-h-[200px] border-t border-border-default/50 bg-bg-muted-box/30' : 'max-h-0'
                   }`}>
-                    <p className="p-5 text-xs text-text-muted leading-relaxed">
+                    <p className="p-5 text-tiny text-text-muted leading-relaxed">
                       {item.jawab}
                     </p>
                   </div>
@@ -90,7 +89,7 @@ export default function Bantuan() {
           <section className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-2 px-1 mb-2">
               <MessageSquare size={16} className="text-brand-primary" />
-              <h3 className="text-xs font-bold tracking-tight uppercase text-text-muted">Hubungi Layanan</h3>
+              <h3 className="text-tiny font-bold tracking-tight uppercase text-text-muted">Hubungi Layanan</h3>
             </div>
 
             {/* KARTU LOKASI FISIK */}
@@ -98,9 +97,9 @@ export default function Bantuan() {
               <div className="absolute top-0 left-0 w-full h-1 bg-brand-primary/40" />
               <div className="flex items-center gap-2.5 text-text-main">
                 <MapPin size={16} className="text-brand-primary shrink-0" />
-                <h4 className="text-xs font-black uppercase tracking-wider">Lokasi Fisik Loket</h4>
+                <h4 className="text-tiny font-black uppercase tracking-wider">Lokasi Fisik Loket</h4>
               </div>
-              <p className="text-[11px] text-text-muted leading-normal">
+              <p className="text-caption text-text-muted leading-normal">
                 Gedung Rektorat Kampus Pusat UNSAP, Lantai 1, Jl. Angkrek Situ No.19, Sumedang Utara, West Java.
               </p>
             </Card>
@@ -109,10 +108,10 @@ export default function Bantuan() {
             <Card className="p-5 space-y-3 relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-brand-primary/40" />
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-black uppercase tracking-wider text-text-main">Jam Pelayanan</h4>
+                <h4 className="text-tiny font-black uppercase tracking-wider text-text-main">Jam Pelayanan</h4>
                 <Badge variant="success" className="normal-case">Senin - Jumat</Badge>
               </div>
-              <div className="space-y-1.5 pt-1 text-[11px] text-text-muted">
+              <div className="space-y-1.5 pt-1 text-caption text-text-muted">
                 <div className="flex justify-between border-b border-border-default/50 pb-1">
                   <span>Sesi Pagi</span>
                   <span className="font-bold text-text-main">08:00 — 12:00 WIB</span>

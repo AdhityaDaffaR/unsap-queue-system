@@ -42,7 +42,7 @@ export default function StatusLoket() {
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-text-main">
             Status Operasional Loket Terpadu
           </h2>
-          <p className="text-xs md:text-sm text-text-muted leading-relaxed">
+          <p className="text-tiny md:text-sm text-text-muted leading-relaxed">
             Pantau pergerakan antrean aktif dan status operasional meja layanan
             Universitas Sebelas April secara langsung tanpa harus mengantre di
             lokasi.
@@ -105,9 +105,9 @@ export default function StatusLoket() {
                   className={!isTutup ? "cursor-pointer" : "select-none"}
                 >
                   <Card
-                    className={`p-6 relative overflow-hidden flex flex-col justify-between transition-all rounded-2xl border border-border-default bg-bg-surface shadow-md h-full ${
+                    className={`p-6 relative overflow-hidden flex flex-col justify-between transition-all rounded-[--radius-lg] border border-border-default bg-bg-surface shadow-[--shadow-dropdown] h-full ${
                       !isTutup
-                        ? "hover:border-brand-primary/30 hover:shadow-lg active:scale-[0.99]"
+                        ? "hover:border-brand-primary/30 hover:shadow-[--shadow-modal] active:scale-[--active-scale]"
                         : "opacity-65"
                     }`}
                   >
@@ -135,7 +135,7 @@ export default function StatusLoket() {
 
                         {/* Badge Info Nomor Meja Terikat Rapi */}
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[8px] font-black tracking-widest bg-bg-main border border-border-default/80 px-1.5 py-0.5 rounded text-text-muted uppercase scale-95">
+                          <span className="text-nano font-black tracking-widest bg-bg-main border border-border-default/80 px-1.5 py-0.5 rounded text-text-muted uppercase scale-95">
                             {loket.kodeDisplay}
                           </span>
                           <Badge variant={!isTutup ? "success" : "danger"}>
@@ -148,8 +148,8 @@ export default function StatusLoket() {
                       </div>
 
                       {/* MONITOR UTAMA NOMOR ANTRIAN YANG SEDANG DILAYANI */}
-                      <div className="bg-bg-muted-box border border-border-default rounded-2xl py-6 text-center shadow-inner flex flex-col justify-center items-center min-h-[110px]">
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.15em] mb-1">
+                      <div className="bg-bg-muted-box border border-border-default rounded-[--radius-lg] py-6 text-center shadow-[--shadow-inner] flex flex-col justify-center items-center min-h-[110px]">
+                        <p className="text-tiny font-bold text-text-muted uppercase tracking-[0.15em] mb-1">
                           Nomor Sedang Dilayani
                         </p>
                         {/* FIX KONSISTENSI UTUT: Teks "TUTUP" pudar dibuang, mendisplay nomor aktif terakhir dengan pudar gray */}
@@ -159,7 +159,7 @@ export default function StatusLoket() {
 
                         {/* Petunjuk dinamis loket konter fisik tujuan terintegrasi adil */}
                         {!isTutup && loket.nomorAktif !== "—" && (
-                          <p className="text-[10px] font-bold text-success bg-success/5 border border-success/10 px-3 py-0.5 rounded-full uppercase tracking-wider animate-pulse mt-2">
+                          <p className="text-tiny font-bold text-success bg-success/5 border border-success/10 px-3 py-0.5 rounded-full uppercase tracking-wider animate-pulse mt-2">
                             👉 {loket.konterFisikAktif ? `Menuju Konter Loket ${loket.konterFisikAktif}` : `Menuju Loket ${loket.kodeDisplay}`}
                           </p>
                         )}
@@ -167,13 +167,13 @@ export default function StatusLoket() {
                     </div>
 
                     {/* BARIS STATISTIK KAKI KARTU */}
-                    <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-border-default/50 text-xs w-full">
+                    <div className="flex items-center justify-between gap-4 mt-6 pt-4 border-t border-border-default/50 text-tiny w-full">
                       <div className="flex flex-col space-y-1">
                         <div className="flex items-center gap-1.5 text-text-muted/70">
                           <Users size={13} className="shrink-0" />
-                          <span className="text-[9px] font-bold uppercase tracking-wider leading-none">Antrean</span>
+                          <span className="text-micro font-bold uppercase tracking-wider leading-none">Antrean</span>
                         </div>
-                        <p className="text-xs font-black text-text-main leading-tight">
+                        <p className="text-tiny font-black text-text-main leading-tight">
                           {!isTutup ? `${loket.sisaAntrean} Orang` : "—"}
                         </p>
                       </div>
@@ -183,14 +183,14 @@ export default function StatusLoket() {
                       <div className="flex flex-col space-y-1 flex-1 pl-4">
                         <div className="flex items-center gap-1.5 text-text-muted/70">
                           <Clock size={13} className="shrink-0" />
-                          <span className="text-[9px] font-bold uppercase tracking-wider leading-none">Estimasi</span>
+                          <span className="text-micro font-bold uppercase tracking-wider leading-none">Estimasi</span>
                         </div>
-                        <p className="text-xs font-black text-text-main leading-tight">
+                        <p className="text-tiny font-black text-text-main leading-tight">
                           {!isTutup ? `± ${loket.estimasi} Min` : "—"}
                         </p>
                       </div>
 
-                      <div className={`px-2.5 flex items-center justify-center text-[10px] font-black rounded-lg border select-none h-7 tracking-tight shrink-0 self-end ${kepadatan.color}`}>
+                      <div className={`px-2.5 flex items-center justify-center text-tiny font-black rounded-[--radius-sm] border select-none h-7 tracking-tight shrink-0 self-end ${kepadatan.color}`}>
                         {kepadatan.text}
                       </div>
                     </div>
@@ -204,8 +204,8 @@ export default function StatusLoket() {
                 <HelpCircle size={20} />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-bold text-text-main">Layanan Tidak Ditemukan</p>
-                <p className="text-[11px] text-text-muted">Kata kunci "{searchQuery}" tidak cocok dengan klaster transaksi manapun.</p>
+                <p className="text-tiny font-bold text-text-main">Layanan Tidak Ditemukan</p>
+                <p className="text-caption text-text-muted">Kata kunci "{searchQuery}" tidak cocok dengan klaster transaksi manapun.</p>
               </div>
             </div>
           )}

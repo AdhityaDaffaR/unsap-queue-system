@@ -30,26 +30,28 @@ export default function LoginUser() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
 
       {/* TOMBOL KEMBALI */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => navigate("/")}
-        className="absolute top-6 left-6 flex items-center gap-2 text-xs font-semibold text-text-muted hover:text-brand-primary transition-colors cursor-pointer bg-transparent border-0"
+        className="absolute top-6 left-6"
       >
         <ArrowLeft size={14} /> Kembali ke Beranda
-      </button>
+      </Button>
 
       {/* KARTU UTAMA LOGIN */}
       <div className="w-full max-w-md z-10">
-        <Card className="p-8 border border-border-default bg-bg-surface shadow-xl rounded-2xl flex flex-col space-y-6">
+        <Card className="p-8 shadow-[--shadow-modal] rounded-[--radius-lg] flex flex-col space-y-6">
           {/* HEADER */}
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary mx-auto shadow-sm">
+            <div className="w-12 h-12 rounded-[--radius-lg] bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary mx-auto shadow-[--shadow-card]">
               <GraduationCap size={24} />
             </div>
             <div className="space-y-1">
-              <h1 className="text-xl font-black tracking-tight text-text-main">
+              <h1 className="text-h3">
                 Sistem Informasi Unsap Terintegrasi
               </h1>
-              <p className="text-xs text-text-muted">
+              <p className="text-tiny text-text-muted">
                 Aplikasi layanan akademik untuk Civitas Akademika Universitas
                 Sebelas April.
               </p>
@@ -58,7 +60,7 @@ export default function LoginUser() {
 
           {/* NOTIFIKASI ERROR */}
           {error && (
-            <div className="p-3 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl text-center">
+            <div className="p-3 text-tiny font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-[--radius-md] text-center">
               {error}
             </div>
           )}
@@ -68,7 +70,7 @@ export default function LoginUser() {
             <form onSubmit={handleLogin} className="space-y-4">
               {/* INPUT NIM */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+                <label className="text-caption font-bold text-text-muted uppercase tracking-wider block">
                   NIM
                 </label>
                 <Input
@@ -80,9 +82,9 @@ export default function LoginUser() {
                 />
               </div>
 
-              {/* INPUT TANGGAL LAHIR (PERBAIKAN: Mengunci struktur tombol mata internal boks) */}
+              {/* INPUT TANGGAL LAHIR */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-text-muted uppercase tracking-wider block">
+                <label className="text-caption font-bold text-text-muted uppercase tracking-wider block">
                   Tanggal Lahir (YYYYMMDD)
                 </label>
                 <div className="relative flex items-center w-full">
@@ -93,17 +95,19 @@ export default function LoginUser() {
                     value={tanggalLahir}
                     onChange={(e) => setTanggalLahir(e.target.value)}
                     maxLength={8}
-                    className="pr-10" // Beri ruang napas di kanan agar teks sandi tidak menabrak ikon mata
+                    className="pr-10"
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 text-text-muted hover:text-text-main transition-colors cursor-pointer bg-transparent border-0 p-0 z-10 flex items-center justify-center"
+                    className="absolute right-1 text-text-muted hover:text-text-main"
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  </Button>
                 </div>
-                <p className="text-[10px] text-text-muted pl-1">
+                <p className="text-tiny text-text-muted pl-1">
                   *Gunakan format TahunBulanTanggal lahir kamu.
                 </p>
               </div>
@@ -111,8 +115,9 @@ export default function LoginUser() {
               <div className="pt-1">
                 <Button
                   type="submit"
-                  variant="primary"
-                  className="w-full py-2.5 text-sm font-bold flex items-center justify-center gap-2 h-11"
+                  variant="default"
+                  className="w-full"
+                  size="lg"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -127,18 +132,19 @@ export default function LoginUser() {
             {/* SEPARATOR */}
             <div className="relative flex items-center justify-center mt-5 mb-5">
               <div className="w-full border-b border-border-default" />
-              <span className="absolute bg-bg-surface px-3 text-[10px] font-bold text-text-muted uppercase tracking-widest">
+              <span className="absolute bg-bg-surface px-3 text-tiny font-bold text-text-muted uppercase tracking-widest">
                 Atau
               </span>
             </div>
 
             {/* OPSI LOGIN INSTITUSI */}
             <div className="space-y-3">
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="default"
+                className="w-full"
                 onClick={() => setShowGoogleModal(true)}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-border-default bg-transparent hover:bg-bg-main active:scale-[0.98] transition-all duration-200 cursor-pointer text-text-main text-sm font-semibold rounded-xl select-none"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -159,8 +165,8 @@ export default function LoginUser() {
                   />
                 </svg>
                 <span>Masuk dengan Google</span>
-              </button>
-              <p className="text-center text-[10px] text-text-muted">
+              </Button>
+              <p className="text-center text-tiny text-text-muted">
                 Gunakan akun institusi resmi{" "}
                 <span className="font-semibold text-brand-primary">
                   @unsap.ac.id
@@ -180,16 +186,16 @@ export default function LoginUser() {
         <div className="space-y-2">
           <button
             onClick={() => selectGoogleAccount("daffa.rhamadhani@unsap.ac.id")}
-            className="w-full flex items-center gap-3 p-3 text-left rounded-xl border border-border-default bg-transparent hover:bg-bg-main active:scale-[0.99] transition-all cursor-pointer text-text-main select-none"
+            className="w-full flex items-center gap-3 p-3 text-left rounded-[--radius-md] border border-border-default bg-transparent hover:bg-bg-main active:scale-[--active-scale] transition-all cursor-pointer text-text-main select-none"
           >
-            <div className="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary text-xs font-bold shrink-0">
+            <div className="w-8 h-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary text-tiny font-bold shrink-0">
               A
             </div>
             <div className="truncate">
-              <p className="text-xs font-bold leading-tight">
+              <p className="text-tiny font-bold leading-tight">
                 Adhitya Daffa Rhamadhani
               </p>
-              <p className="text-[11px] text-text-muted mt-0.5">
+              <p className="text-caption text-text-muted mt-0.5">
                 daffa.rhamadhani@unsap.ac.id
               </p>
             </div>
@@ -197,16 +203,16 @@ export default function LoginUser() {
 
           <button
             onClick={() => selectGoogleAccount("23410001@student.unsap.ac.id")}
-            className="w-full flex items-center gap-3 p-3 text-left rounded-xl border border-border-default bg-transparent hover:bg-bg-main active:scale-[0.99] transition-all cursor-pointer text-text-main select-none"
+            className="w-full flex items-center gap-3 p-3 text-left rounded-[--radius-md] border border-border-default bg-transparent hover:bg-bg-main active:scale-[--active-scale] transition-all cursor-pointer text-text-main select-none"
           >
-            <div className="w-8 h-8 rounded-full bg-slate-500/10 border border-border-default flex items-center justify-center text-text-muted text-xs font-bold shrink-0">
+            <div className="w-8 h-8 rounded-full bg-slate-500/10 border border-border-default flex items-center justify-center text-text-muted text-tiny font-bold shrink-0">
               M
             </div>
             <div className="truncate">
-              <p className="text-xs font-bold leading-tight">
+              <p className="text-tiny font-bold leading-tight">
                 Mahasiswa UNSAP (NIM)
               </p>
-              <p className="text-[11px] text-text-muted mt-0.5">
+              <p className="text-caption text-text-muted mt-0.5">
                 23410001@student.unsap.ac.id
               </p>
             </div>
