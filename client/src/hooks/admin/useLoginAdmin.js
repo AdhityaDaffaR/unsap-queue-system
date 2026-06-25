@@ -1,31 +1,37 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../config/api";
 
 export default function useLoginAdmin() {
   const navigate = useNavigate();
 
-  // STATE INPUT FORM ADMIN
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // STATE: Pengendali pop-up kustom pilihan penugasan meja loket
   const [showSelectLoketModal, setShowSelectLoketModal] = useState(false);
+  const [listLoketTugas, setListLoketTugas] = useState([]);
+  const [fetchError, setFetchError] = useState("");
 
-  // Cek status apakah admin sebenarnya sudah masuk/terotentikasi sebelumnya
-  const isAdminLoggedIn = sessionStorage.getItem("isAdminLoggedIn") === "true";
+  const isAdminLoggedIn = !!localStorage.getItem("tokenAdmin");
 
-  // DATA MASTER LOKET: Opsi plotting penugasan kerja staf
-  const listLoketTugas = [
-    { id: 1, kode: "1A", nama: "Loket 1A - Pembayaran Yayasan", prefix: "Y-" },
-    { id: 2, kode: "1B", nama: "Loket 1B - Pembayaran Yayasan", prefix: "Y-" },
-    { id: 3, kode: "2", nama: "Loket 2 - BAAK (Akademik)", prefix: "A-" },
-    { id: 4, kode: "3", nama: "Loket 3 - Keuangan/BAU", prefix: "B-" },
-  ];
+  const fetchLoketList = async () => {
+    try {
+      setFetchError("");
+      const resData = await api.get("/api/loket");
+      if (resData.success) {
+        setListLoketTugas(resData.data);
+      } else {
+        setFetchError(resData.message || "Gagal memuat daftar loket.");
+      }
+    } catch (err) {
+      setFetchError("Koneksi ke server gagal. Pastikan server menyala.");
+      console.error("Gagal memuat daftar loket:", err);
+    }
+  };
 
-  // LOGIKA SUBMIT LOGIN ADMIN (INTEGRASI BACKEND RIIL)
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -38,32 +44,24 @@ export default function useLoginAdmin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      const resData = await api.post("/api/auth/login", { username, password });
 
-      const resData = await response.json();
-
-      if (!response.ok || !resData.success) {
-        throw new Error(resData.message || "Akses Ditolak! Terjadi kesalahan.");
+      if (!resData.success) {
+        throw new Error(resData.message || "Akses Ditolak!");
       }
 
-      // KONEKSI BERHASIL: Titipkan kredensial dinamis dari backend ke sessionStorage
-      sessionStorage.setItem("isAdminLoggedIn", "true");
-      sessionStorage.setItem(
-        "adminProfileData",
-        JSON.stringify({
-          id: resData.data.id,
-          username: resData.data.username, // Ini tetap username
-          nama: resData.data.nama_staf, // Pastikan ini mengambil nama_staf ("Admin UNSAP")
-          role: resData.data.username, // Ubah role menjadi username sesuai request kamu!
-        }),
-      );
+      localStorage.removeItem("loket_tugas_aktif");
+      localStorage.setItem("tokenAdmin", resData.token);
+      localStorage.setItem("adminProfileData", JSON.stringify({
+        id: resData.data.id,
+        username: resData.data.username,
+        nama: resData.data.nama_staf,
+        id_layanan: resData.data.id_layanan,
+        nama_layanan: resData.data.nama_layanan,
+      }));
 
-      // Buka modal penugasan loket tugas
       setShowSelectLoketModal(true);
+      fetchLoketList();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -71,23 +69,30 @@ export default function useLoginAdmin() {
     }
   };
 
-  // FUNGSI AKSI SAAT STAF MEMILIH MEJA TUGAS
-  const handlePilihLoket = (loket) => {
-    setShowSelectLoketModal(false);
+  const handlePilihLoket = async (loket) => {
+    const token = localStorage.getItem("tokenAdmin");
+    if (!token) return;
 
-    // Titipkan data loket pilihan ke dalam loker sessionStorage browser
-    sessionStorage.setItem(
-      "loket_tugas_aktif",
-      JSON.stringify({
-        id: loket.id,
-        kode: loket.kode,
-        nama: loket.nama,
-        status: "Buka",
-      }),
-    );
+    try {
+      const resData = await api.patch("/api/loket/pilih", { id_loket: loket.id }, token);
 
-    // Alihkan navigasi masuk ke dalam Dashboard Utama Staf
-    navigate("/admin/dashboard");
+      if (!resData.success) {
+        throw new Error(resData.message || "Gagal memilih loket.");
+      }
+
+      localStorage.setItem("loket_tugas_aktif", JSON.stringify({
+        id: resData.data.id,
+        kode: resData.data.kode_loket,
+        nama: resData.data.nama_loket,
+        id_layanan: resData.data.id_layanan,
+        status: resData.data.status,
+      }));
+
+      setShowSelectLoketModal(false);
+      navigate("/admin/dashboard");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return {
@@ -104,6 +109,8 @@ export default function useLoginAdmin() {
     setShowSelectLoketModal,
     listLoketTugas,
     handlePilihLoket,
+    fetchError,
+    fetchLoketList,
     isAdminLoggedIn,
     navigate,
   };

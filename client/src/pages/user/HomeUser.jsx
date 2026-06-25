@@ -1,4 +1,4 @@
-import React from "react";
+
 import {
   LayoutGrid,
   Ticket,
@@ -51,7 +51,7 @@ export default function HomeUser() {
   const isMonitorUtamaTutup = layananAktif.status === "Tutup";
 
   const konterFisikPemanggil = masterLoket?.find(
-    (l) => l.aktif === layananAktif.aktifDisplay && l.status === "Buka",
+    (l) => l.aktif === layananAktif.aktifDisplay && l.status === "buka",
   );
 
   const isGilirankuDipanggil =
@@ -97,9 +97,9 @@ export default function HomeUser() {
         {punyaTiketAktif && (
           <section className="w-full transition-all duration-300">
             <Card
-              className={`p-5 flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden rounded-2xl border transition-colors duration-300 ${
+              className={`p-5 flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden rounded-[--radius-lg] border transition-colors duration-300 ${
                 loketPemanggil
-                  ? "border-emerald-500/40 bg-emerald-500/5 shadow-md shadow-emerald-500/5 animate-[pulse_2.5s_infinite]"
+                  ? "border-emerald-500/40 bg-emerald-500/5 shadow-[--shadow-dropdown] shadow-emerald-500/5 animate-[pulse_2.5s_infinite]"
                   : "border-brand-primary/30 bg-brand-primary/5"
               }`}
             >
@@ -109,7 +109,7 @@ export default function HomeUser() {
 
               <div className="flex items-center gap-4 text-center sm:text-left flex-col sm:flex-row flex-1">
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border text-white ${
+                  className={`w-10 h-10 rounded-[--radius-md] flex items-center justify-center shrink-0 shadow-[--shadow-card] border text-white ${
                     loketPemanggil
                       ? "bg-success border-emerald-500/10"
                       : "bg-brand-primary border-brand-primary/10"
@@ -119,7 +119,7 @@ export default function HomeUser() {
                 </div>
                 <div>
                   <h3
-                    className={`text-xs font-black uppercase tracking-wider ${loketPemanggil ? "text-success" : "text-brand-primary"}`}
+                    className={`text-tiny font-black uppercase tracking-wider ${loketPemanggil ? "text-success" : "text-brand-primary"}`}
                   >
                     {loketPemanggil
                       ? "✦ GILIRAN ANDA TIBA! ✦"
@@ -130,7 +130,7 @@ export default function HomeUser() {
                       ? `SILAKAN MERAPAT KE ${loketPemanggil.nama.toUpperCase()}`
                       : "Menunggu Panggilan Antrean"}
                   </p>
-                  <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">
+                  <p className="text-caption text-text-muted mt-0.5 leading-relaxed">
                     {loketPemanggil
                       ? "Nomor tiket Anda sedang dipanggil. Silakan bawa seluruh berkas kelengkapan administrasi Anda menuju meja konter sekarang."
                       : "Tiket Anda aman tersimpan. Silakan santai di ruang tunggu dan perhatikan perubahan monitor di bawah."}
@@ -140,13 +140,13 @@ export default function HomeUser() {
 
               <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-end">
                 <div
-                  className={`border px-6 flex flex-col justify-center rounded-xl text-center min-w-[130px] h-[52px] shadow-sm select-none w-full sm:w-auto transition-colors ${
+                  className={`border px-6 flex flex-col justify-center rounded-[--radius-md] text-center min-w-[130px] h-[52px] shadow-[--shadow-card] select-none w-full sm:w-auto transition-colors ${
                     loketPemanggil
                       ? "bg-bg-surface border-success"
                       : "bg-bg-surface border-border-default"
                   }`}
                 >
-                  <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest leading-none">
+                  <p className="text-micro font-bold text-text-muted uppercase tracking-widest leading-none">
                     Nomor Anda
                   </p>
                   <p
@@ -156,13 +156,15 @@ export default function HomeUser() {
                   </p>
                 </div>
 
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleBatalkanAntrean}
-                  className="w-12 sm:w-13 h-[52px] bg-rose-600/10 hover:bg-rose-600 text-rose-600 hover:text-white rounded-xl border border-rose-500/20 transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0"
+                  className="w-12 h-[52px] bg-rose-600/10 hover:bg-rose-600 text-rose-600 hover:text-white rounded-[--radius-md]"
                   title="Batalkan Antrean"
                 >
                   <Trash2 size={16} />
-                </button>
+                </Button>
               </div>
             </Card>
           </section>
@@ -176,7 +178,7 @@ export default function HomeUser() {
               className={`h-[380px] flex flex-col p-6 relative overflow-hidden transition-all duration-200 ${isMonitorUtamaTutup ? "opacity-65" : ""}`}
             >
               <div className="absolute top-0 left-0 w-full h-[26px] bg-brand-primary flex items-center justify-center border-b border-brand-primary/10 select-none">
-                <span className="text-[9px] font-black tracking-[0.25em] text-white uppercase flex items-center justify-center gap-2">
+                <span className="text-nano font-black tracking-[0.25em] text-white uppercase flex items-center justify-center gap-2">
                   <Ticket size={14} className="shrink-0" />
                   <span className="leading-none pt-[1px]">
                     LAYAR PANTAU TERPILIH
@@ -205,20 +207,20 @@ export default function HomeUser() {
                 </Badge>
               </div>
 
-              <div className="flex-1 w-full flex flex-col justify-between bg-bg-muted-box border border-border-default rounded-2xl text-center max-w-md mx-auto my-3 min-h-[170px] relative overflow-hidden pt-5 shadow-inner">
+              <div className="flex-1 w-full flex flex-col justify-between bg-bg-muted-box border border-border-default rounded-[--radius-lg] text-center max-w-md mx-auto my-3 min-h-[170px] relative overflow-hidden pt-5 shadow-[--shadow-inner]">
                 {loketPemanggil &&
                 loketPemanggil.kategori === selectedKategori ? (
                   <div className="flex flex-col items-center justify-center space-y-2 animate-pulse text-success px-4 pb-4 flex-1">
                     <div className="w-9 h-9 rounded-full bg-success/10 flex items-center justify-center">
                       <BellRing size={16} />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest leading-none">
+                    <p className="text-micro font-black uppercase tracking-widest leading-none">
                       GILIRAN ANDA TIBA
                     </p>
                     <p className="text-4xl font-black tracking-tight">
                       {nomorTiketBaru}
                     </p>
-                    <p className="text-[10px] text-text-muted font-bold max-w-[240px] leading-normal">
+                    <p className="text-micro text-text-muted font-bold max-w-[240px] leading-normal">
                       Silakan merapat ke{" "}
                       <span className="text-success font-black">
                         {loketPemanggil.kode}
@@ -229,7 +231,7 @@ export default function HomeUser() {
                 ) : (
                   <div className="flex flex-col justify-between h-full flex-1">
                     <div className="flex flex-col items-center justify-center flex-1 py-1">
-                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.15em]">
+                      <p className="text-micro font-bold text-text-muted uppercase tracking-[0.15em]">
                         Sedang Dipanggil
                       </p>
                       <div
@@ -247,7 +249,7 @@ export default function HomeUser() {
                       {!isMonitorUtamaTutup &&
                       layananAktif.aktifDisplay !== "—" ? (
                         isGilirankuDipanggil ? (
-                          <div className="w-full bg-emerald-600 dark:bg-emerald-500 text-white py-2 px-4 flex items-center justify-center gap-1.5 text-sm font-black uppercase tracking-wide shadow-inner select-none animate-[pulse_2s_infinite]">
+                          <div className="w-full bg-emerald-600 dark:bg-emerald-500 text-white py-2 px-4 flex items-center justify-center gap-1.5 text-sm font-black uppercase tracking-wide shadow-[--shadow-inner] select-none animate-[pulse_2s_infinite]">
                             <span>
                               ✨ MENUJU LOKET{" "}
                               {konterFisikPemanggil
@@ -270,7 +272,7 @@ export default function HomeUser() {
                           </div>
                         )
                       ) : (
-                        <div className="w-full bg-border-default/40 text-text-muted/60 py-2.5 px-4 text-[10px] font-black uppercase tracking-widest select-none">
+                        <div className="w-full bg-border-default/40 text-text-muted/60 py-2.5 px-4 text-micro font-black uppercase tracking-widest select-none">
                           {isMonitorUtamaTutup
                             ? "OPERASIONAL BERHENTI"
                             : "MENUNGGU PANGGILAN ANTRIAN"}
@@ -305,15 +307,15 @@ export default function HomeUser() {
                 <h2 className="text-xs font-bold text-text-muted uppercase tracking-wider">
                   Urutan Tunggu
                 </h2>
-                <p className="text-[11px] text-text-muted mt-0.5">
+                <p className="text-caption text-text-muted mt-0.5">
                   Daftar urutan loket aktif saat ini
                 </p>
               </div>
 
               <div className="h-[275px] overflow-y-auto pr-1 space-y-2.5 scrollbar-thin w-full">
-                <div className="flex items-center p-3 h-[52px] rounded-xl border border-brand-primary/30 bg-brand-primary/5 w-full">
+                <div className="flex items-center p-3 h-[52px] rounded-[--radius-md] border border-brand-primary/30 bg-brand-primary/5 w-full">
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-brand-primary text-white">
+                    <span className="text-micro font-black px-1.5 py-0.5 rounded bg-brand-primary text-white">
                       1
                     </span>
                     <span className="text-xs font-semibold text-brand-primary">
@@ -329,10 +331,10 @@ export default function HomeUser() {
                   ? layananAktif.selanjutnyaList.map((nomor, index) => (
                       <div
                         key={index}
-                        className="flex items-center p-3 h-[52px] rounded-xl border border-border-default bg-bg-main/30 opacity-70 w-full"
+                        className="flex items-center p-3 h-[52px] rounded-[--radius-md] border border-border-default bg-bg-main/30 opacity-70 w-full"
                       >
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-border-default text-text-muted">
+                          <span className="text-micro font-bold px-1.5 py-0.5 rounded bg-border-default text-text-muted">
                             {index + 2}
                           </span>
                           <span className="text-xs font-semibold text-text-muted">
@@ -346,7 +348,7 @@ export default function HomeUser() {
                     ))
                   : layananAktif.selanjutnyaList.length === 0 && (
                       <div className="text-center py-4 flex flex-col items-center justify-center h-[200px] text-text-muted/40">
-                        <p className="text-[10px] font-bold uppercase tracking-wider">
+                        <p className="text-micro font-bold uppercase tracking-wider">
                           Tidak Ada Daftar Tunggu
                         </p>
                       </div>
@@ -374,10 +376,10 @@ export default function HomeUser() {
                 <div
                   key={layanan.kategori}
                   onClick={() => setSelectedKategori(layanan.kategori)}
-                  className={`group rounded-2xl cursor-pointer transition-all duration-200 border p-5 flex flex-col justify-between min-h-[140px] h-full select-none relative overflow-hidden ${
+                  className={`group rounded-[--radius-lg] cursor-pointer transition-all duration-200 border p-5 flex flex-col justify-between min-h-[140px] h-full select-none relative overflow-hidden ${
                     isSelected
-                      ? "border-brand-primary ring-2 ring-brand-primary/10 shadow-md bg-bg-surface"
-                      : "border-border-default hover:border-text-muted shadow-sm bg-bg-surface"
+                      ? "border-brand-primary ring-2 ring-brand-primary/10 shadow-[--shadow-card] bg-bg-surface"
+                      : "border-border-default hover:border-text-muted shadow-[--shadow-card] bg-bg-surface"
                   } ${isTutup ? "opacity-65" : ""}`}
                 >
                   <div
@@ -391,7 +393,7 @@ export default function HomeUser() {
                       >
                         {layanan.judulTampilan}
                       </h3>
-                      <span className="text-[8px] font-black tracking-widest bg-bg-main border border-border-default/80 px-1.5 py-0.5 rounded text-text-muted shrink-0 uppercase scale-95">
+                      <span className="text-nano font-black tracking-widest bg-bg-main border border-border-default/80 px-1.5 py-0.5 rounded text-text-muted shrink-0 uppercase scale-95">
                         {layanan.kodeDisplay}
                       </span>
                     </div>
@@ -421,7 +423,7 @@ export default function HomeUser() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-2 border-t border-border-default flex items-center justify-between text-[10px] w-full">
+                  <div className="mt-4 pt-2 border-t border-border-default flex items-center justify-between text-micro w-full">
                     <span className="text-text-muted font-medium">
                       {isTutup
                         ? "Tutup"
@@ -457,26 +459,28 @@ export default function HomeUser() {
             <p className="text-xs font-bold text-text-main">
               Apakah Anda Yakin Ingin Keluar?
             </p>
-            <p className="text-[11px] text-text-muted px-4 leading-normal">
+            <p className="text-caption text-text-muted px-4 leading-normal">
               Sesi aktif Anda akan dibersihkan dengan aman demi melindungi
               privasi data antrean mahasiswa.
             </p>
           </div>
           <div className="flex w-full gap-3 pt-2">
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowLogoutModal(false)}
-              className="flex-1 cursor-pointer rounded-xl border border-border-default bg-transparent py-2 text-xs font-bold text-text-muted transition-all hover:bg-bg-main"
+              className="flex-1"
             >
               Batal
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={handleConfirmLogout}
-              className="flex-1 border-0 bg-danger py-2 text-xs font-black text-white transition-all rounded-xl flex items-center justify-center cursor-pointer hover:bg-red-600"
+              className="flex-1"
             >
               Ya, Keluar Akun
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -494,27 +498,31 @@ export default function HomeUser() {
             <p className="text-xs font-bold text-text-main">
               Kamu Belum Terautentikasi
             </p>
-            <p className="text-[11px] text-text-muted px-4 leading-normal">
+            <p className="text-caption text-text-muted px-4 leading-normal">
               Demi validasi data antrean civitas, silakan masuk menggunakan NIM
               atau Email Kampus terlebih dahulu.
             </p>
           </div>
           <div className="w-full pt-2 flex gap-3">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowAuthWarningModal(false)}
-              className="flex-1 py-2 text-xs font-bold border border-border-default bg-transparent hover:bg-bg-main rounded-xl text-text-muted transition-all cursor-pointer"
+              className="flex-1"
             >
               Batal
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
               onClick={() => {
                 setShowAuthWarningModal(false);
                 navigate("/login");
               }}
-              className="flex-1 py-2 text-xs font-bold bg-brand-primary hover:bg-brand-primary-hover rounded-xl text-white transition-all border-0"
+              className="flex-1"
             >
               Login Sekarang
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -528,8 +536,8 @@ export default function HomeUser() {
           <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
             <CheckCircle size={24} />
           </div>
-          <div className="w-full bg-bg-muted-box border border-border-default rounded-xl p-4 text-center max-w-[200px] mx-auto">
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest leading-none">
+          <div className="w-full bg-bg-muted-box border border-border-default rounded-[--radius-md] p-4 text-center max-w-[200px] mx-auto">
+            <p className="text-micro font-bold text-text-muted uppercase tracking-widest leading-none">
               Nomor Tiket Anda
             </p>
             <p className="text-4xl font-black text-brand-primary mt-2.5 tracking-tight leading-none">
@@ -540,7 +548,7 @@ export default function HomeUser() {
             <p className="text-xs font-bold text-text-main">
               {layananAktif.judulTampilan}
             </p>
-            <p className="text-[10px] text-text-muted leading-normal">
+            <p className="text-micro text-text-muted leading-normal">
               Silakan simpan nomor ini and pantau pergerakan antrean. Jangan
               sampai terlewat!
             </p>
@@ -570,7 +578,7 @@ export default function HomeUser() {
             <p className="text-xs font-bold text-text-main">
               Apakah Anda Yakin?
             </p>
-            <p className="text-[11px] text-text-muted px-4 leading-normal">
+            <p className="text-caption text-text-muted px-4 leading-normal">
               Tindakan ini akan menghapus nomor antrean{" "}
               <span className="font-black text-brand-primary">
                 {nomorTiketBaru}
@@ -579,19 +587,23 @@ export default function HomeUser() {
             </p>
           </div>
           <div className="flex w-full gap-3 pt-2">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowCancelConfirmModal(false)}
-              className="flex-1 cursor-pointer rounded-xl border border-border-default bg-transparent py-2 text-xs font-bold text-text-muted transition-all hover:bg-bg-main"
+              className="flex-1"
             >
               Kembali
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={handleConfirmPembatalan}
-              className="flex-1 border-0 bg-danger py-2 text-xs font-black text-white transition-all rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1"
             >
               <Trash2 size={13} />
               <span>Ya, Batalkan</span>
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

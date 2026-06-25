@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { api } from '../../config/api';
 
 export default function useLoginUser() {
   const navigate = useNavigate();
@@ -29,29 +30,29 @@ export default function useLoginUser() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login-mahasiswa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          npm: nim, 
-          password: tanggalLahir 
-        })
+      const resData = await api.post('/api/auth/login-mahasiswa', { 
+        npm: nim, 
+        password: tanggalLahir 
       });
 
-      const resData = await response.json();
-
-      if (!response.ok || !resData.success) {
+      if (!resData.success) {
         throw new Error(resData.message || 'Gagal login, periksa kembali data Anda.');
       }
       
-      sessionStorage.setItem('isLoggedInUser', 'true');
-      sessionStorage.setItem('userProfileData', JSON.stringify({
+      localStorage.setItem('tokenMahasiswa', resData.token);
+      localStorage.setItem('isLoggedInUser', 'true');
+      localStorage.setItem('userProfileData', JSON.stringify({
         id: resData.data.id,
         nama: resData.data.nama_mahasiswa,
         npm: resData.data.npm,
         prodi: resData.data.prodi,
         angkatan: resData.data.angkatan
       }));
+
+      if (resData.tiket_aktif) {
+        localStorage.setItem('nomorTiketAktif', resData.tiket_aktif.nomor_display);
+        localStorage.setItem('idAntreanAktif', resData.tiket_aktif.id);
+      }
 
       navigate('/'); 
 
@@ -62,11 +63,10 @@ export default function useLoginUser() {
     }
   };
 
-  const selectGoogleAccount = (emailNama) => {
+  const selectGoogleAccount = () => {
     setShowGoogleModal(false);
     setIsLoading(true);
     
-    // Google Modal murni bertindak sebagai simulasi penutup tanpa membawa data hardcoded luar
     setTimeout(() => {
       setIsLoading(false);
       setError('Metode Google Sign-In eksternal dinonaktifkan sementara di lingkungan localhost.');

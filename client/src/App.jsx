@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomeUser from './pages/user/HomeUser';
 import LoginUser from './pages/user/LoginUser';
@@ -7,11 +6,13 @@ import DashboardAdmin from './pages/admin/DashboardAdmin';
 import StatusLoket from './pages/user/StatusLoket';
 import Bantuan from './pages/user/Bantuan';
 import DisplayMonitor from './pages/user/DisplayMonitor';
+import { LoketProvider } from './context/LoketContext';
 
 function App() {
   return (
     <Router>
-      <Routes>
+      <LoketProvider>
+        <Routes>
         {/* Jalur untuk Mahasiswa */}
         <Route path="/" element={<HomeUser />} />
         <Route path="/login" element={<LoginUser />} />
@@ -27,6 +28,7 @@ function App() {
 
         <Route path="/display-monitor" element={<DisplayMonitor />} />
       </Routes>
+      </LoketProvider>
     </Router>
   );
 }

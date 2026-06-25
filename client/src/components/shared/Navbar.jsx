@@ -1,9 +1,9 @@
-import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion'; 
 import { LogIn, LogOut, Home, Layers, HelpCircle, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-import LogoUnsap from '../../assets/logo-unsap.png';
+import LogoUnsap from '../../assets/UNSAP.png';
+import Button from '../ui/Button';
 
 export default function Navbar({ 
   navigate, 
@@ -18,6 +18,16 @@ export default function Navbar({
   const location = useLocation();
   const currentPath = location.pathname;
 
+  const navLinkClass = (path) =>
+    `flex flex-col items-center justify-center h-full px-1 cursor-pointer bg-transparent border-0 p-0 select-none group relative transition-all duration-150 active:scale-[--active-scale] ${
+      currentPath === path ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
+    }`;
+
+  const mobileNavLinkClass = (path) =>
+    `flex items-center gap-2 text-caption font-black uppercase tracking-wider text-left px-3 py-2 rounded-[--radius-sm] border-0 w-full cursor-pointer transition-all duration-150 active:scale-[--active-scale] ${
+      currentPath === path ? 'text-brand-primary bg-brand-primary/5' : 'text-text-muted hover:text-text-main hover:bg-bg-main'
+    }`;
+
   return (
     <header className="w-full bg-bg-surface border-b border-border-default sticky top-0 z-40 h-16 flex items-center">
       <div className={`${maxWidth} w-full mx-auto flex items-center justify-between px-6`}>
@@ -27,24 +37,22 @@ export default function Navbar({
           <img
             src={LogoUnsap}
             alt="Logo Universitas Sebelas April"
-            className="w-8 h-8 rounded-full object-cover select-none"
+            className="w-8 h-8 object-cover select-none"
           />
           <div className="flex flex-col justify-center select-none">
-            <span className="text-[11px] font-black text-text-main leading-none uppercase tracking-wider">UNIVERSITAS SEBELAS APRIL SUMEDANG</span>
-            <span className="text-[10px] font-bold text-text-muted leading-none mt-1 uppercase tracking-widest">{title}</span>
+            <span className="text-caption font-black text-text-main leading-none uppercase tracking-wider">UNIVERSITAS SEBELAS APRIL SUMEDANG</span>
+            <span className="text-micro font-bold text-text-muted leading-none mt-1 uppercase tracking-widest">{title}</span>
           </div>
         </div>
 
         {/* SISI TENGAH: NAVIGASI DESKTOP */}
         {title === "Queue System" && (
-          <nav className="hidden md:flex items-center justify-center gap-6 text-[11px] font-black uppercase tracking-wider flex-1 mx-4 h-10 relative">
+          <nav className="hidden md:flex items-center justify-center gap-6 text-caption font-black uppercase tracking-wider flex-1 mx-4 h-10 relative">
             
             {/* LINK 1: BERANDA */}
             <button 
               onClick={() => navigate('/')}
-              className={`flex flex-col items-center justify-center h-full px-1 cursor-pointer bg-transparent border-0 p-0 select-none group relative ${
-                currentPath === '/' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
-              }`}
+              className={navLinkClass('/')}
             >
               <div className="flex items-center gap-1.5 py-1">
                 <Home size={14} className="shrink-0 mb-[1px]" />
@@ -62,9 +70,7 @@ export default function Navbar({
             {/* LINK 2: STATUS LOKET */}
             <button 
               onClick={() => navigate('/status-loket')}
-              className={`flex flex-col items-center justify-center h-full px-1 cursor-pointer bg-transparent border-0 p-0 select-none group relative ${
-                currentPath === '/status-loket' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
-              }`}
+              className={navLinkClass('/status-loket')}
             >
               <div className="flex items-center gap-1.5 py-1">
                 <Layers size={14} className="shrink-0 mb-[1px]" />
@@ -82,9 +88,7 @@ export default function Navbar({
             {/* LINK 3: BANTUAN */}
             <button 
               onClick={() => navigate('/bantuan')}
-              className={`flex flex-col items-center justify-center h-full px-1 cursor-pointer bg-transparent border-0 p-0 select-none group relative ${
-                currentPath === '/bantuan' ? 'text-brand-primary' : 'text-text-muted hover:text-text-main'
-              }`}
+              className={navLinkClass('/bantuan')}
             >
               <div className="flex items-center gap-1.5 py-1">
                 <HelpCircle size={14} className="shrink-0 mb-[1px]" />
@@ -109,64 +113,83 @@ export default function Navbar({
             <div className="h-4 w-[1px] bg-border-default mx-0.5" />
             
             {!isLoggedIn ? (
-              <button 
+              <Button
+                variant="default"
+                size="sm"
                 onClick={() => navigate(currentPath.includes('/admin') ? '/admin/login' : '/login')}
-                className="flex items-center gap-1.5 px-4 h-9 bg-brand-primary text-white text-[11px] font-black uppercase tracking-wider rounded-lg hover:bg-brand-primary-hover cursor-pointer border border-brand-primary/10 shadow-sm shadow-brand-primary/5 active:scale-[0.97] transition-all"
               >
                 <LogIn size={14} />
                 <span>Masuk</span>
-              </button>
+              </Button>
             ) : (
               <div className="flex items-center gap-4 h-9">
                 <div className="flex items-center gap-2.5 h-full select-none">
-                  <div className="w-7 h-7 rounded-lg bg-bg-muted-box border border-border-default flex items-center justify-center font-black text-[10px] text-text-main shrink-0 shadow-inner">
+                  <div className="w-7 h-7 rounded-[--radius-sm] bg-bg-muted-box border border-border-default flex items-center justify-center font-black text-tiny text-text-main shrink-0 shadow-[--shadow-inner]">
                     {userProfile?.nama ? userProfile.nama.substring(0, 2).toUpperCase() : 'AD'}
                   </div>
                   <div className="text-left hidden lg:flex flex-col justify-center min-w-[90px]">
-                    <p className="text-[11px] font-black leading-none text-text-main truncate max-w-[130px]">{userProfile?.nama || "User"}</p>
-                    <p className="text-text-muted text-[9px] mt-1 leading-none font-bold tracking-wide">{userProfile?.nim || "—"}</p>
+                    <p className="text-caption font-black leading-none text-text-main truncate max-w-[130px]">{userProfile?.nama || "User"}</p>
+                    <p className="text-text-muted text-micro mt-1 leading-none font-bold tracking-wide">{userProfile?.nim || "—"}</p>
                   </div>
                 </div>
                 
-                <button 
-                  onClick={handleLogout} 
-                  className="h-8 px-3 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 rounded-lg border border-danger/10 bg-danger/5 text-danger hover:bg-danger hover:text-white active:scale-[0.97] cursor-pointer select-none transition-colors"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-danger hover:bg-danger/10 hover:text-danger"
                   title="Keluar Sesi"
                 >
                   <LogOut size={12} className="shrink-0" />
                   <span>Keluar</span>
-                </button>
+                </Button>
               </div>
             )}
           </div>
 
-          <button 
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg border border-border-default text-text-main bg-bg-surface cursor-pointer hover:bg-bg-main transition-colors"
+            className="md:hidden"
           >
             {isMenuOpen ? <X size={16} /> : <Menu size={16} />}
-          </button>
+          </Button>
         </div>
 
       </div>
 
       {/* MENU PANEL MOBILE DROPDOWN */}
       {isMenuOpen && (
-        <div className="md:hidden fixed top-16 left-0 w-full bg-bg-surface border-b border-border-default py-4 space-y-2.5 px-6 flex flex-col z-40 shadow-xl animate-[fadeIn_0.2s_ease-out]">
-          <button onClick={() => { setIsMenuOpen(false); navigate('/'); }} className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-left px-3 py-2 rounded-lg border-0 w-full cursor-pointer ${currentPath === '/' ? 'text-brand-primary bg-brand-primary/5' : 'text-text-muted'}`}><Home size={14} /> Beranda</button>
-          <button onClick={() => { setIsMenuOpen(false); navigate('/status-loket'); }} className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-left px-3 py-2 rounded-lg border-0 w-full cursor-pointer ${currentPath === '/status-loket' ? 'text-brand-primary bg-brand-primary/5' : 'text-text-muted'}`}><Layers size={14} /> Status Loket</button>
-          <button onClick={() => { setIsMenuOpen(false); navigate('/bantuan'); }} className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-left px-3 py-2 rounded-lg border-0 w-full cursor-pointer ${currentPath === '/bantuan' ? 'text-brand-primary bg-brand-primary/5' : 'text-text-muted'}`}><HelpCircle size={14} /> Bantuan</button>
-          <div className="border-t border-border-default/60 my-1 pt-3 flex items-center justify-between px-3"><span className="text-[11px] font-black uppercase tracking-wider text-text-muted">Ubah Tema</span><ThemeToggle /></div>
+        <div className="md:hidden fixed top-16 left-0 w-full bg-bg-surface border-b border-border-default py-4 space-y-2.5 px-6 flex flex-col z-40 shadow-[--shadow-modal] animate-[fadeIn_0.2s_ease-out]">
+          <button onClick={() => { setIsMenuOpen(false); navigate('/'); }} className={mobileNavLinkClass('/')}><Home size={14} /> Beranda</button>
+          <button onClick={() => { setIsMenuOpen(false); navigate('/status-loket'); }} className={mobileNavLinkClass('/status-loket')}><Layers size={14} /> Status Loket</button>
+          <button onClick={() => { setIsMenuOpen(false); navigate('/bantuan'); }} className={mobileNavLinkClass('/bantuan')}><HelpCircle size={14} /> Bantuan</button>
+          <div className="border-t border-border-default/60 my-1 pt-3 flex items-center justify-between px-3"><span className="text-caption font-black uppercase tracking-wider text-text-muted">Ubah Tema</span><ThemeToggle /></div>
           <div className="pt-2 px-1">
             {!isLoggedIn ? (
-              <button onClick={() => { setIsMenuOpen(false); navigate('/login'); }} className="w-full flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-wider py-2.5 bg-brand-primary text-white rounded-lg border-0 shadow-sm"><LogIn size={14} /> <span>Masuk Aplikasi</span></button>
+              <Button
+                variant="default"
+                size="sm"
+                className="w-full"
+                onClick={() => { setIsMenuOpen(false); navigate('/login'); }}
+              >
+                <LogIn size={14} /> <span>Masuk Aplikasi</span>
+              </Button>
             ) : (
-              <div className="flex items-center justify-between p-3 bg-bg-muted-box rounded-xl border border-border-default">
+              <div className="flex items-center justify-between p-3 bg-bg-muted-box rounded-[--radius-md] border border-border-default">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-bg-surface text-text-main flex items-center justify-center font-black text-xs border border-border-default">{userProfile?.nama ? userProfile.nama.substring(0, 2).toUpperCase() : 'AD'}</div>
-                  <div><p className="text-[11px] font-black text-text-main leading-none">{userProfile?.nama}</p><p className="text-text-muted text-[10px] mt-1 leading-none font-bold">{userProfile?.nim}</p></div>
+                  <div className="w-8 h-8 rounded-[--radius-sm] bg-bg-surface text-text-main flex items-center justify-center font-black text-tiny border border-border-default">{userProfile?.nama ? userProfile.nama.substring(0, 2).toUpperCase() : 'AD'}</div>
+                  <div><p className="text-caption font-black text-text-main leading-none">{userProfile?.nama}</p><p className="text-text-muted text-tiny mt-1 leading-none font-bold">{userProfile?.nim}</p></div>
                 </div>
-                <button onClick={handleLogout} className="h-8 px-3 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 rounded-lg border border-danger/20 bg-danger/5 text-danger hover:bg-danger hover:text-white transition-colors"><LogOut size={12} /><span>Keluar</span></button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-danger hover:bg-danger/10 hover:text-danger"
+                >
+                  <LogOut size={12} /><span>Keluar</span>
+                </Button>
               </div>
             )}
           </div>

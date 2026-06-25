@@ -1,30 +1,35 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const formatNamaMahasiswa = (namaLengkap) => {
+  if (!namaLengkap) return "Guest Civitas";
+  const kata = namaLengkap.trim().split(/\s+/);
+  if (kata.length <= 2) return namaLengkap;
+  const duaKataPertama = kata.slice(0, 2).join(" ");
+  const sisaInisial = kata.slice(2).map((k) => `${k.charAt(0).toUpperCase()}.`).join(" ");
+  return `${duaKataPertama} ${sisaInisial}`;
+};
+
+const getIsLoggedIn = () => localStorage.getItem('isLoggedInUser') === 'true';
+const getProfile = () => {
+  const saved = localStorage.getItem('userProfileData');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    return { nama: formatNamaMahasiswa(parsed.nama), nim: parsed.npm || "—" };
+  }
+  return { nama: "Guest Civitas", nim: "—" };
+};
+
 export default function useBantuan() {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(getIsLoggedIn);
+  const [userProfile, setUserProfile] = useState(getProfile);
 
-  // FIX SINKRONISASI AUTENTIKASI: Membaca status login riil dari session storage browser
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return sessionStorage.getItem('isLoggedInUser') === 'true';
-  });
-
-  // Membaca profil data akun yang sedang aktif digunakan
-  const [userProfile, setUserProfile] = useState(() => {
-    const savedProfile = sessionStorage.getItem('userProfileData');
-    return savedProfile ? JSON.parse(savedProfile) : { nama: "Guest Civitas", nim: "—" };
-  });
-
-  // Sinkronisasi dinamis real-time jika ada perubahan status login dari halaman lain
   useEffect(() => {
-    const syncAuth = () => {
-      setIsLoggedIn(sessionStorage.getItem('isLoggedInUser') === 'true');
-      const savedProfile = sessionStorage.getItem('userProfileData');
-      if (savedProfile) setUserProfile(JSON.parse(savedProfile));
-    };
-    const interval = setInterval(syncAuth, 500);
-    return () => clearInterval(interval);
+    const sync = () => { setIsLoggedIn(getIsLoggedIn()); setUserProfile(getProfile()); };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
   }, []);
 
   const toggleFAQ = (index) => {
@@ -33,9 +38,7 @@ export default function useBantuan() {
 
   // LOGIKA KELUAR AKUN SINKRON
   const handleLogout = () => {
-    sessionStorage.removeItem('isLoggedInUser');
-    sessionStorage.removeItem('userProfileData');
-    sessionStorage.removeItem('nomorTiketAktif');
+    ['tokenMahasiswa', 'isLoggedInUser', 'userProfileData', 'nomorTiketAktif', 'idAntreanAktif'].forEach((k) => localStorage.removeItem(k));
     setIsLoggedIn(false);
     navigate('/');
   };

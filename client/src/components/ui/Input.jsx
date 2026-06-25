@@ -1,6 +1,9 @@
-import React from 'react';
+export default function Input({ icon: Icon, variant = 'default', className = '', ...props }) {
+  const variants = {
+    default: 'border-border-default focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20',
+    error: 'border-danger focus:border-danger focus:ring-2 focus:ring-danger/20',
+  };
 
-export default function Input({ icon: Icon, className = '', ...props }) {
   return (
     <div className="relative flex items-center w-full">
       {Icon && (
@@ -10,9 +13,9 @@ export default function Input({ icon: Icon, className = '', ...props }) {
       )}
       <input 
         {...props}
-        className={`w-full h-10 text-sm bg-bg-surface border border-border-default rounded-md focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 transition-shadow outline-none font-medium placeholder:text-text-muted/50 text-text-main ${
+        className={`w-full h-10 text-caption bg-bg-surface border rounded-[--radius-sm] transition-all duration-150 outline-none font-medium placeholder:text-text-muted/50 text-text-main ${
           Icon ? 'pl-10 pr-4' : 'px-3.5'
-        } ${className}`}
+        } ${variants[variant]} ${className}`}
       />
     </div>
   );
