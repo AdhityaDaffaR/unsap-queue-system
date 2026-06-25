@@ -10,7 +10,8 @@ export const getAllLayanan = async (req, res) => {
       .order('id', { ascending: true });
 
     if (error) {
-      return res.status(400).json({ success: false, message: error.message });
+      console.error("❌ getAllLayanan query error:", error.message);
+      return res.status(400).json({ success: false, message: "Gagal memuat data layanan." });
     }
 
     return res.status(200).json({ success: true, data });

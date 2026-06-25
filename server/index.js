@@ -36,8 +36,7 @@ app.get('/', (req, res) => {
 // Pendaftaran Seluruh Jalur API Utama
 app.use('/api/layanan', layananRoutes);
 app.use('/api/antrean', antreanRoutes);
-app.use('/api/auth', authLimiter);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/loket', loketRoutes);
 
 // 404 Handler

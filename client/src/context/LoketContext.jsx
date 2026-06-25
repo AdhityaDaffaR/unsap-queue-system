@@ -51,24 +51,32 @@ export function LoketProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    fetchMasterLoket();
-  }, [fetchMasterLoket]);
+    let mounted = true;
 
-  useEffect(() => {
-    fetchMonitorData();
-    const channels = [
-      supabase.channel("context_loket")
-        .on("postgres_changes", { event: "*", schema: "public", table: "loket" }, fetchMasterLoket)
-        .subscribe(),
-      supabase.channel("context_antrean")
-        .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
-        .subscribe(),
-      supabase.channel("realtime_sync")
-        .on("broadcast", { event: "loket_berubah" }, fetchMasterLoket)
-        .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .subscribe(),
-    ];
-    return () => channels.forEach((c) => supabase.removeChannel(c));
+    const init = async () => {
+      await fetchMasterLoket();
+      if (mounted) {
+        await fetchMonitorData();
+      }
+      if (mounted) {
+        const channel = supabase.channel("realtime_sync")
+          .on("broadcast", { event: "loket_berubah" }, () => {
+            fetchMasterLoket();
+            fetchMonitorData();
+          })
+          .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
+          .subscribe();
+        cleanup = () => supabase.removeChannel(channel);
+      }
+    };
+
+    let cleanup = () => {};
+    init();
+
+    return () => {
+      mounted = false;
+      cleanup();
+    };
   }, [fetchMasterLoket, fetchMonitorData]);
 
   const layananList = useMemo(() => {

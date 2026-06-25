@@ -22,7 +22,7 @@ export default function ThemeToggle() {
     <button 
       onClick={toggleTheme}
       type="button"
-      className="p-2 rounded-lg bg-transparent border border-border-default hover:bg-bg-muted-box transition-colors cursor-pointer flex items-center justify-center w-9 h-9 active:scale-[0.95]"
+      className="p-2 rounded-lg bg-transparent border border-border-default hover:bg-bg-muted-box transition-all duration-150 cursor-pointer flex items-center justify-center w-9 h-9 active:scale-[--active-scale]"
       aria-label="Toggle Theme"
     >
       {isDark ? (

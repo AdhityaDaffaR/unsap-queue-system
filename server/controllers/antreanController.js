@@ -132,6 +132,16 @@ export const panggilAntrean = async (req, res) => {
   try {
     const { id_layanan, nomor_loket } = req.body;
     const hariIni = getTanggalHariIniWIB();
+
+    // Step 1: Selesaikan tiket yang sedang dipanggil di loket ini (jika ada)
+    await supabase
+      .from("antrean")
+      .update({ status: "selesai" })
+      .eq("nomor_loket", nomor_loket)
+      .eq("status", "dipanggil")
+      .eq("tanggal_antrean", hariIni);
+
+    // Step 2: Ambil tiket berikutnya
     const { data: next, error } = await supabase
       .from("antrean")
       .select("*")
@@ -146,6 +156,8 @@ export const panggilAntrean = async (req, res) => {
       await broadcastUpdate('antrean_berubah');
       return res.status(200).json({ success: true, message: "Antrean kosong" });
     }
+
+    // Step 3: Panggil tiket berikutnya
     const { data: updated, error: errUpdate } = await supabase
       .from("antrean")
       .update({ status: "dipanggil", nomor_loket })
@@ -156,12 +168,7 @@ export const panggilAntrean = async (req, res) => {
     if (!updated || updated.length === 0) {
       return res.status(409).json({ success: false, message: "Antrean telah diambil loket lain, coba lagi." });
     }
-    await supabase
-      .from("antrean")
-      .update({ status: "selesai" })
-      .eq("nomor_loket", nomor_loket)
-      .eq("status", "dipanggil")
-      .eq("tanggal_antrean", hariIni);
+
     await broadcastUpdate('antrean_berubah');
     return res.status(200).json({ success: true, data: updated[0] });
   } catch (err) {
@@ -196,6 +203,17 @@ export const panggilAntreanLewati = async (req, res) => {
   try {
     const { id_antrean, nomor_loket } = req.body;
     const hariIni = getTanggalHariIniWIB();
+
+    const { data: tiket } = await supabase
+      .from("antrean")
+      .select("id_layanan")
+      .eq("id", id_antrean)
+      .eq("status", "dilewati")
+      .single();
+
+    if (!tiket) {
+      return res.status(404).json({ success: false, message: "Tiket antrean tidak ditemukan atau sudah dipanggil." });
+    }
 
     await supabase
       .from("antrean")

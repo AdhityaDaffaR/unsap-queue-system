@@ -34,7 +34,7 @@ export default function Modal({ isOpen, onClose, title, children, showCloseButto
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
           >
-            <Card className="border border-border-default bg-bg-surface shadow-[--shadow-modal] rounded-[--radius-lg] relative flex flex-col space-y-4" size="md">
+            <Card className="shadow-[--shadow-modal] rounded-[--radius-lg] relative flex flex-col space-y-4" size="md">
               {title && (
                 <div className="text-center pr-6 pl-6">
                   <h3 className="text-h4 text-text-main tracking-tight">{title}</h3>

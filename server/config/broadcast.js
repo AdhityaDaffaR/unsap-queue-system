@@ -21,9 +21,13 @@ export const broadcastUpdate = async (event = 'data_changed', payload = {}) => {
     console.warn('⚠️ Broadcast channel belum diinisialisasi.');
     return;
   }
-  await channel.send({
-    type: 'broadcast',
-    event,
-    payload: { timestamp: Date.now(), ...payload },
-  });
+  try {
+    await channel.send({
+      type: 'broadcast',
+      event,
+      payload: { timestamp: Date.now(), ...payload },
+    });
+  } catch (err) {
+    console.error(`❌ Gagal broadcast event "${event}":`, err.message);
+  }
 };

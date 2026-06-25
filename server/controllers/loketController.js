@@ -13,7 +13,8 @@ export const getAllLoket = async (req, res) => {
       .order('id', { ascending: true });
 
     if (error) {
-      return res.status(400).json({ success: false, message: error.message });
+      console.error("❌ getAllLoket query error:", error.message);
+      return res.status(400).json({ success: false, message: "Gagal memuat data loket." });
     }
 
     return res.status(200).json({ success: true, data });
@@ -126,10 +127,6 @@ export const updateStatusLoket = async (req, res) => {
       status,
       updated_at: new Date().toISOString()
     };
-
-    if (status === 'tutup') {
-      updateData.id_staf_aktif = null;
-    }
 
     const { data, error } = await supabase
       .from('loket')

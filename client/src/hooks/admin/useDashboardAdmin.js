@@ -55,17 +55,10 @@ export default function useDashboardAdmin() {
   useEffect(() => {
     if (!monitorParams.isActive) return;
     fetchMonitorData(); // eslint-disable-line react-hooks/set-state-in-effect
-    const channels = [
-      supabase.channel("admin_antrean")
-        .on("postgres_changes", { event: "*", schema: "public", table: "antrean" }, fetchMonitorData)
-        .subscribe(),
-      supabase.channel("realtime_sync")
-        .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
-        .subscribe(),
-    ];
-    return () => {
-      channels.forEach((c) => supabase.removeChannel(c));
-    };
+    const channel = supabase.channel("realtime_sync")
+      .on("broadcast", { event: "antrean_berubah" }, fetchMonitorData)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [monitorParams.isActive, monitorParams.kode, monitorParams.idLayanan, fetchMonitorData]);
 
   useEffect(() => {

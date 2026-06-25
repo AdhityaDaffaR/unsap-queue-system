@@ -1,6 +1,8 @@
-export default function Card({ children, className = '' }) {
+const paddings = { sm: 'p-4', md: 'p-6', lg: 'p-8' };
+
+export default function Card({ children, className = '', size = 'md' }) {
   return (
-    <div className={`bg-bg-surface border border-border-default rounded-[--radius-md] shadow-[--shadow-card] ${className}`}>
+    <div className={`bg-bg-surface border border-border-default rounded-[--radius-md] shadow-[--shadow-card] ${paddings[size] || paddings.md} ${className}`}>
       {children}
     </div>
   );
